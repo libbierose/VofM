@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Viewer Leaderboard Overlay</title>
+<meta name="viewport" content="width=800, initial-scale=1">
+<style>
+    body { background: rgba(0,0,0,0); margin: 0; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
+    .leaderboard-overlay {
+        background: rgba(30,22,66,0.94);
+        border-radius: 18px;
+        padding: 28px 38px 24px 38px;
+        box-shadow: 0 8px 32px #0004;
+        max-width: 550px;
+        min-width: 320px;
+        height: 650px;
+        margin: 0 auto;
+    }
+    .overlay-title {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 16px;
+        text-align: center;
+    }
+    .overlay-list { list-style: none; margin: 0; padding: 0; }
+    .overlay-row {
+        display: flex; align-items: center; gap: 12px;
+        margin-bottom: 6px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 9px;
+        padding: 6px 14px 6px 7px;
+        opacity: 0; transform: translateY(32px);
+        animation: fadeInUp 1.2s forwards;
+    }
+    /* Animate LAST to FIRST, but keep 1st at top visually */
+    .overlay-row:nth-child(10) { animation-delay: 0.12s; }
+    .overlay-row:nth-child(9)  { animation-delay: 0.24s; }
+    .overlay-row:nth-child(8)  { animation-delay: 0.36s; }
+    .overlay-row:nth-child(7)  { animation-delay: 0.48s; }
+    .overlay-row:nth-child(6)  { animation-delay: 0.60s; }
+    .overlay-row:nth-child(5)  { animation-delay: 0.72s; }
+    .overlay-row:nth-child(4)  { animation-delay: 0.84s; }
+    .overlay-row:nth-child(3)  { animation-delay: 0.96s; }
+    .overlay-row:nth-child(2)  { animation-delay: 1.08s; }
+    .overlay-row:nth-child(1)  { animation-delay: 1.20s; }
+    @keyframes fadeInUp {
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .medal { font-size: 1.6rem; margin-right: 5px; }
+    .gold { color: gold; }
+    .silver { color: #b8b8b8; }
+    .bronze { color: #cd7f32; }
+    .avatar {
+        width: 36px; height: 36px; border-radius: 50%; border: 2px solid #7159ff33; object-fit: cover;
+        background: #181433;
+    }
+    .username { font-weight: 600; font-size: 1.1rem; flex: 1; }
+    .points { font-family: monospace; font-size: 1.12rem; }
+</style>
+</head>
+<body>
+<div class="leaderboard-overlay">
+    <div class="overlay-title" id="overlayTitle"></div>
+    <ul class="overlay-list" id="overlayList"></ul>
+</div>
+
+<script>
+const wsURL = "ws://127.0.0.1:9292/"; // Update if needed!
+const showMonth = "current"; // "current" or "last", or set via ?month= param if you wish
+
+let ws;
+let allMonths = [];
+let selectedMonth = "";
+
+function connectWebSocket() {
+    ws = new WebSocket(wsURL);
+    ws.onopen = () => {
+        ws.send(JSON.stringify({ action: "getmonths" }));
+    };
+    ws.onmessage = evt => {
+        let msg;
+        try { msg = JSON.parse(evt.data); } catch { return; }
+        if (msg.type === "months") {
+            allMonths = msg.months || [];
+            let month = getTargetMonth();
+            selectedMonth = month;
+            ws.send(JSON.stringify({ action: "getleaderboard", month }));
+        }
+        if (msg.type === "leaderboard") {
+            renderOverlay(msg.entries || [], msg.month);
+        }
+    };
+    ws.onclose = () => setTimeout(connectWebSocket, 2500);
+}
+function getTargetMonth() {
+    if (showMonth === "current" || !allMonths.length)
+        return allMonths[0] || getCurrentMonth();
+    if (showMonth === "last" && allMonths.length > 1)
+        return allMonths[1];
+    return allMonths[0];
+}
+function getCurrentMonth() {
+    let d = new Date(), m = (d.getMonth()+1).toString().padStart(2,"0"), y = d.getFullYear();
+    return `${y}-${m}`;
+}
+function renderOverlay(entries, month) {
+    const medals = [
+        '<span class="medal gold">🥇</span>',
+        '<span class="medal silver">🥈</span>',
+        '<span class="medal bronze">🥉</span>'
+    ];
+    document.getElementById('overlayTitle').textContent =
+        (showMonth === "last" ? "Last Month" : "Current") + " Leaderboard";
+    // Only show up to 10 entries (top 10)
+    const maxShow = 10;
+    const list = entries.slice(0, maxShow);
+    let html = "";
+    // Render 1st to 10th place, top to bottom (normal order)
+    list.forEach((e, idx) => {
+        html += `<li class="overlay-row">
+            ${idx < 3 ? medals[idx] : `<span style="width:1.8em;display:inline-block;"></span>`}
+            <img src="${e.avatar || 'https://placehold.co/32x32'}" class="avatar">
+            <span class="username">${e.displayName || e.user}</span>
+            <span class="points">${e.points} pts</span>
+        </li>`;
+    });
+    document.getElementById('overlayList').innerHTML = html;
+}
+
+connectWebSocket();
+</script>
+</body>
+</html>

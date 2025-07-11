@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Viewer of the Month Dashboard</title>
+		<meta name="viewport" content="width=1280,initial-scale=1" />
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+		<style>
+			body {
+				background: #14151a;
+				color: #fff;
+			}
+			.container-fluid {
+				max-width: 1280px;
+				margin: 0 auto;
+			}
+			@media (max-width: 1300px) {
+				.container-fluid {
+					max-width: 99vw;
+				}
+			}
+			.card {
+				background: #222334 !important;
+				border: none;
+			}
+			.leaderboard-avatar {
+				width: 64px;
+				height: 64px;
+				border-radius: 50%;
+				border: 2px solid #555;
+				object-fit: cover;
+			}
+			.medal {
+				font-size: 2rem;
+			}
+			.gold {
+				color: gold;
+			}
+			.silver {
+				color: #b8b8b8;
+			}
+			.bronze {
+				color: #cd7f32;
+			}
+			.sidebar-card {
+				min-height: 400px;
+			}
+			.header-bg {
+				background: linear-gradient(90deg, #9c73fa 0%, #7d58c2 100%);
+				padding: 2rem 1.5rem 1.5rem 1.5rem;
+				border-radius: 0 0 2rem 2rem;
+			}
+			.header-title {
+				font-size: 2.2rem;
+				font-weight: 700;
+				display: flex;
+				align-items: center;
+				gap: 1rem;
+			}
+			.current-vofm-card {
+				background: #2b2554 !important;
+				color: #fff;
+				border-radius: 1rem;
+				box-shadow: 0 2px 8px #0002;
+				min-width: 250px;
+			}
+			.table th,
+			.table td {
+				vertical-align: middle;
+			}
+			.table-dark {
+				background-color: #191b21 !important;
+			}
+			.modal-content {
+				background-color: #24253a !important;
+			}
+			.form-label {
+				color: #e0e0e0;
+			}
+			.form-control,
+			.form-select {
+				background: #24253a !important;
+				color: #fff !important;
+				border: 1px solid #444;
+			}
+			#allTimeWinners ul {
+				list-style: none;
+				padding-left: 0;
+				margin-bottom: 0;
+			}
+			#allTimeWinners li {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				margin-bottom: 2px;
+			}
+			#status {
+				min-width: 180px;
+				transition: color 0.3s, opacity 0.3s;
+			}
+			.status-success {
+				color: #19db71;
+			}
+			.status-danger {
+				color: #fa4b4b;
+			}
+			.status-waiting {
+				color: #ffe366;
+			}
+			.status-info {
+				color: #54a0fa;
+			}
+
+			.header-bg {
+				position: relative;
+			}
+			.status-bottom {
+				position: absolute;
+				left: 18px;
+				bottom: 14px;
+				z-index: 2;
+				pointer-events: none;
+			}
+			@media (max-width: 600px) {
+				.status-bottom {
+					left: 10px;
+					bottom: 8px;
+					font-size: 13px;
+				}
+			}
+			.base-point-row,
+			.streak-type-row {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				margin-bottom: 6px;
+			}
+			.base-point-row input[type="number"] {
+				max-width: 80px;
+			}
+			.remove-base-point,
+			.remove-streak-type {
+				color: #fa4b4b;
+				border: none;
+				background: none;
+				font-size: 1.2rem;
+				line-height: 1;
+				cursor: pointer;
+			}
+			.form-switch {
+				margin-bottom: 0;
+			}
+			/* User stats modal layout */
+			#userStatsModal .modal-body .row {
+				align-items: center;
+			}
+			#userStatsAvatar {
+				width: 80px;
+				height: 80px;
+				border-radius: 50%;
+				border: 2px solid #555;
+				object-fit: cover;
+			}
+			@media (max-width: 600px) {
+				#userStatsAvatar {
+					width: 60px;
+					height: 60px;
+				}
+			}
+			.userstats-username {
+				font-size: 1.3rem;
+				font-weight: 600;
+			}
+			.userstats-label {
+				color: #d0c8e8;
+			}
+			.userstats-value {
+				font-weight: 600;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container-fluid px-4">
+			<!-- Header Row -->
+			<div class="header-bg position-relative mb-4 flex-wrap d-flex justify-content-between align-items-center">
+				<div class="header-title mb-3 mb-lg-0"><img src="https://img.icons8.com/ios-filled/40/fff/twitch.png" style="vertical-align: middle" /> Viewer of the Month Dashboard</div>
+				<div id="currentWinnerCard" class="current-vofm-card p-3 d-flex flex-column align-items-center justify-content-center">
+					<div class="mb-1 small">Current VofM</div>
+					<img id="currentWinnerAvatar" class="leaderboard-avatar mb-2" src="https://placehold.co/64x64" alt="" />
+					<div id="currentWinnerName" class="fw-bold fs-5">Username</div>
+					<div id="currentWinnerPoints" class="small">0 points</div>
+				</div>
+				<button class="btn btn-outline-light ms-4 mt-3 mt-lg-0" data-bs-toggle="modal" data-bs-target="#settingsModal"><i class="bi bi-gear"></i> Settings</button>
+				<span id="status" class="fw-bold small status-bottom"></span>
+			</div>
+			<div class="row">
+				<!-- Left Main (Leaderboard and Medals) -->
+				<div class="col-lg-9">
+					<div class="d-flex gap-3 justify-content-center mb-4" id="medalCards"></div>
+					<div class="card mb-4">
+						<div class="card-body">
+							<div class="d-flex align-items-center mb-2">
+								<h5 class="card-title mb-0">Leader</h5>
+								<select id="monthDropdown" class="form-select form-select-sm w-auto ms-3" style="min-width: 100px"></select>
+								<button class="btn btn-sm btn-primary ms-2" id="refreshLeaderboard">Refresh</button>
+							</div>
+							<div class="table-responsive">
+								<table class="table table-dark table-sm align-middle mb-0">
+									<thead>
+										<tr>
+											<th style="width: 40px">#</th>
+											<th>Avatar</th>
+											<th>Username</th>
+											<th>Points</th>
+										</tr>
+									</thead>
+									<tbody id="leaderboardTable"></tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-3">
+					<div class="card sidebar-card mb-4">
+						<div class="card-body">
+							<div class="fw-bold mb-2">All-Time Winners</div>
+							<div id="allTimeWinners"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Settings Modal (Tabbed, User-Friendly) -->
+			<div class="modal fade" id="settingsModal" tabindex="-1">
+				<div class="modal-dialog modal-dialog-centered" style="max-width: 600px">
+					<div class="modal-content p-2">
+						<div class="modal-header">
+							<h5 class="modal-title">Settings</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<ul class="nav nav-tabs mb-3 px-3" id="settingsTab" role="tablist">
+							<li class="nav-item" role="presentation">
+								<button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#tab-general" type="button" role="tab" aria-controls="tab-general" aria-selected="true">
+									General
+								</button>
+							</li>
+							<li class="nav-item" role="presentation">
+								<button class="nav-link" id="points-tab" data-bs-toggle="tab" data-bs-target="#tab-points" type="button" role="tab" aria-controls="tab-points" aria-selected="false">
+									Base Points
+								</button>
+							</li>
+							<li class="nav-item" role="presentation">
+								<button class="nav-link" id="streak-tab" data-bs-toggle="tab" data-bs-target="#tab-streak" type="button" role="tab" aria-controls="tab-streak" aria-selected="false">
+									Multiplier
+								</button>
+							</li>
+						</ul>
+						<div class="tab-content px-3" id="settingsTabContent">
+							<div class="tab-pane fade show active" id="tab-general" role="tabpanel" aria-labelledby="general-tab">
+								<div class="mb-3">
+									<label class="form-label">Leaderboard Reset Day</label>
+									<input type="number" class="form-control" min="1" max="28" id="inputResetDay" />
+									<small class="text-secondary">Day of month the leaderboard resets (1–28).</small>
+								</div>
+								<div class="mb-3">
+									<label class="form-label">Redemption Point Mode</label>
+									<select class="form-select" id="inputRedemptionMode">
+										<option value="perRedemption">Per Redemption</option>
+										<option value="byCost">By Cost</option>
+									</select>
+									<div class="form-text">
+										<b>Per Redemption:</b> Uses a fixed points value per redemption.<br />
+										<b>By Cost:</b> Points are calculated from the channel point cost of the reward.
+									</div>
+								</div>
+								<div class="mb-3">
+									<label class="form-label">Current Winner Username</label>
+									<input type="text" class="form-control" id="inputCurrentWinner" />
+									<small class="text-secondary">Set the current Viewer of the Month manually (optional).</small>
+								</div>
+							</div>
+							<div class="tab-pane fade" id="tab-points" role="tabpanel" aria-labelledby="points-tab">
+								<div class="mb-4">
+									<label class="form-label">Base Points</label>
+									<div id="basePointsList"></div>
+									<small class="text-secondary d-block mt-1">Each event type can have custom base points.</small>
+								</div>
+							</div>
+							<div class="tab-pane fade" id="tab-streak" role="tabpanel" aria-labelledby="streak-tab">
+								<div class="mb-2">
+									<label class="form-label">Streak Multiplier</label>
+									<div id="streakTypesList"></div>
+									<small class="text-secondary d-block mt-1">Enable streak multiplier for each event type.</small>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button class="btn btn-primary" id="saveSettings">Save Settings</button>
+							<button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- User Stats Modal -->
+			<div class="modal fade" id="userStatsModal" tabindex="-1">
+				<div class="modal-dialog modal-dialog-centered" style="max-width: 580px">
+					<div class="modal-content p-2">
+						<div class="modal-header">
+							<h5 class="modal-title" id="userStatsTitle">Viewer Stats</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+						</div>
+						<div class="modal-body">
+							<div class="row g-2 mb-2">
+								<!-- Left: All-Time stats -->
+								<div class="col-7 col-sm-7">
+									<div class="mb-2">
+										<span class="userstats-label">All-Time Points:</span>
+										<span class="userstats-value ms-1" id="userStatsAllTimePoints">0</span>
+									</div>
+									<div>
+										<span class="userstats-label">All-Time Redemptions:</span>
+										<span class="userstats-value ms-1" id="userStatsAllTimeRedemptions">0</span>
+									</div>
+									<div>
+										<span class="userstats-label">All-Time Points Spent:</span>
+										<span class="userstats-value ms-1" id="userStatsAllTimeSpent">0</span>
+									</div>
+									<div>
+										<span class="userstats-label">All-Time Chat Msgs:</span>
+										<span class="userstats-value ms-1" id="userStatsAllTimeChatMsgs">0</span>
+									</div>
+									<div>
+										<span class="userstats-label">All-Time Watch Time:</span>
+										<span class="userstats-value ms-1" id="userStatsAllTimeWatch">0 min</span>
+									</div>
+								</div>
+								<!-- Right: Profile pic and name -->
+								<div class="col-5 col-sm-5 text-end">
+									<img id="userStatsAvatar" src="https://placehold.co/64x64" class="mb-2 leaderboard-avatar" style="width: 80px; height: 80px" /><br />
+									<span id="userStatsDisplayName" class="userstats-username">Viewer</span>
+								</div>
+							</div>
+							<div class="mb-3">
+								<select id="userStatsMonthDropdown" class="form-select form-select-sm w-auto mx-auto" style="min-width: 120px; max-width: 200px"></select>
+							</div>
+							<table class="table table-sm table-dark mb-2" id="userStatsTable">
+								<tbody>
+									<!-- Filled by JS -->
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+		<script>
+			const wsURL = "ws://127.0.0.1:9292/";
+			let ws,
+				allMonths = [],
+				selectedMonth = "",
+				allTimeWinners = {};
+			let wsConnected = false;
+			let fetchStatus = "";
+
+			// Modal state tracking
+			let userStatsModalInstance = null;
+			let userStatsCurrent = { user: "", month: "" };
+
+			function setStatus(text = "", style = "info") {
+				const s = document.getElementById("status");
+				let indicator = wsConnected
+					? `<span style="display:inline-block;width:10px;height:10px;background:#19db71;border-radius:50%;margin-right:8px;vertical-align:middle;"></span>Connected`
+					: `<span style="display:inline-block;width:10px;height:10px;background:#fa4b4b;border-radius:50%;margin-right:8px;vertical-align:middle;"></span>Disconnected`;
+				let display = indicator;
+				if (text && !["Connected!", "Disconnected, retrying..."].includes(text)) {
+					fetchStatus = text;
+					display += ` &nbsp; <span class="status-${style}">${fetchStatus}</span>`;
+				} else if (fetchStatus && style === "success") {
+					display += ` &nbsp; <span class="status-success">${fetchStatus}</span>`;
+					setTimeout(() => {
+						fetchStatus = "";
+						setStatus();
+					}, 1800);
+				} else if (fetchStatus && style === "danger") {
+					display += ` &nbsp; <span class="status-danger">${fetchStatus}</span>`;
+					setTimeout(() => {
+						fetchStatus = "";
+						setStatus();
+					}, 3500);
+				} else if (fetchStatus) {
+					display += ` &nbsp; <span class="status-info">${fetchStatus}</span>`;
+				}
+				s.innerHTML = display;
+			}
+
+			function connectWebsocket() {
+				wsConnected = false;
+				setStatus("Connecting to Streamer.bot...", "waiting");
+				ws = new WebSocket(wsURL);
+
+				ws.onopen = () => {
+					wsConnected = true;
+					setStatus("Connected!", "success");
+					requestSettings();
+					setTimeout(requestMonthsAndInitialLeaderboard, 300);
+				};
+
+				ws.onmessage = (evt) => {
+					let msg;
+					try {
+						msg = JSON.parse(evt.data);
+					} catch (e) {
+						setStatus("Bad data!", "danger");
+						return;
+					}
+					if (msg.type === "settings") {
+						populateSettingsModal(msg);
+						setStatus("Received Settings", "success");
+					}
+					if (msg.type === "leaderboard") {
+						renderLeaderboard(msg.entries || []);
+						updateMonthDropdown(msg.month);
+						setStatus("Received Leaderboard", "success");
+					}
+					if (msg.type === "currentwinner") {
+						renderCurrentWinner(msg);
+						setStatus("Received Current Winner", "success");
+					}
+					if (msg.type === "alltimewinners") {
+						renderAllTimeWinners(msg.allTimeWinners || {});
+						setStatus("Received All Time Winners", "success");
+					}
+					if (msg.type === "months") {
+						allMonths = msg.months;
+						fillMonthDropdown(allMonths);
+						setStatus("Received Months", "success");
+					}
+					if (msg.type === "settings-saved") {
+						setStatus("Settings saved!", "success");
+					}
+					if (msg.type === "userstats") {
+						if (!msg.data) {
+							setStatus("User not found", "danger");
+							return;
+						}
+						setStatus("Loaded user stats", "success");
+						renderUserStatsModal(msg.data);
+					}
+				};
+
+				ws.onerror = (err) => {
+					wsConnected = false;
+					setStatus("Websocket error!", "danger");
+				};
+				ws.onclose = () => {
+					wsConnected = false;
+					setStatus("Disconnected, retrying...", "danger");
+					setTimeout(connectWebsocket, 2000);
+				};
+			}
+
+			function requestSettings() {
+				setStatus("Loading settings...", "waiting");
+				ws.send(JSON.stringify({ action: "getsettings" }));
+				ws.send(JSON.stringify({ action: "getcurrentwinner" }));
+				ws.send(JSON.stringify({ action: "getalltimewinners" }));
+			}
+
+			function requestMonthsAndInitialLeaderboard() {
+				setStatus("Loading months...", "waiting");
+				ws.send(JSON.stringify({ action: "getmonths" }));
+				setTimeout(() => {
+					let month = allMonths.length ? allMonths[0] : getCurrentMonth();
+					selectedMonth = month;
+					setStatus("Fetching leaderboard...", "waiting");
+					ws.send(JSON.stringify({ action: "getleaderboard", month }));
+				}, 200);
+			}
+
+			function fillMonthDropdown(months) {
+				let sel = document.getElementById("monthDropdown");
+				sel.innerHTML = "";
+				months.forEach((m) => {
+					let opt = document.createElement("option");
+					opt.value = m;
+					opt.textContent = m === getCurrentMonth() ? `${m} (Current)` : m;
+					sel.appendChild(opt);
+				});
+				sel.value = selectedMonth || getCurrentMonth();
+			}
+
+			function updateMonthDropdown(month) {
+				let sel = document.getElementById("monthDropdown");
+				if (month && sel) sel.value = month;
+			}
+
+			function getCurrentMonth() {
+				let d = new Date(),
+					m = (d.getMonth() + 1).toString().padStart(2, "0"),
+					y = d.getFullYear();
+				return `${y}-${m}`;
+			}
+
+			// ---- Modal / Stats ----
+
+			function showUserStatsModal(user) {
+				userStatsCurrent = { user, month: selectedMonth || getCurrentMonth() };
+				setStatus("Loading user stats...", "waiting");
+				ws.send(JSON.stringify({ action: "getuser", user, month: userStatsCurrent.month }));
+				// Open only if not already shown
+				if (!userStatsModalInstance) {
+					userStatsModalInstance = new bootstrap.Modal(document.getElementById("userStatsModal"));
+					userStatsModalInstance.show();
+				} else {
+					userStatsModalInstance.show();
+				}
+			}
+
+			// Render modal content, attach dropdown event
+			function renderUserStatsModal(data) {
+				if (!data) {
+					document.getElementById("userStatsTitle").innerText = "Viewer Stats";
+					document.getElementById("userStatsAvatar").src = "https://placehold.co/64x64";
+					document.getElementById("userStatsDisplayName").innerText = "Viewer";
+					document.getElementById("userStatsAllTimePoints").innerText = "0";
+					document.getElementById("userStatsAllTimeRedemptions").innerText = "0";
+					document.getElementById("userStatsAllTimeSpent").innerText = "0";
+					document.getElementById("userStatsAllTimeChatMsgs").innerText = "0";
+					document.getElementById("userStatsAllTimeWatch").innerText = "0 min";
+					document.getElementById("userStatsTable").innerHTML = "<tr><td colspan='2'>No data found.</td></tr>";
+					return;
+				}
+				// Profile and username
+				document.getElementById("userStatsAvatar").src = data.ProfileImageUrl || "https://placehold.co/64x64";
+				document.getElementById("userStatsDisplayName").innerText = data.DisplayName || data.Username || data.UserName || "Viewer";
+				// All-time stats
+				document.getElementById("userStatsAllTimePoints").innerText = data.VofM_Points || 0;
+				document.getElementById("userStatsAllTimeRedemptions").innerText = data.AllTimeRedemptions || 0;
+				document.getElementById("userStatsAllTimeSpent").innerText = data.AllTimePointsSpent || 0;
+				document.getElementById("userStatsAllTimeChatMsgs").innerText = data.AllTimeChatMessages || 0;
+				document.getElementById("userStatsAllTimeWatch").innerText = data.AllTimeWatchSeconds ? Math.round(data.AllTimeWatchSeconds / 60) + " min" : "0 min";
+				// --- Month Dropdown ---
+				const dropdown = document.getElementById("userStatsMonthDropdown");
+				dropdown.innerHTML = "";
+				const months = data.Months || allMonths || [getCurrentMonth()];
+				months.forEach((m) => {
+					let opt = document.createElement("option");
+					opt.value = m;
+					opt.textContent = m === getCurrentMonth() ? `${m} (Current)` : m;
+					dropdown.appendChild(opt);
+				});
+				dropdown.value = userStatsCurrent.month;
+				// Remove old event to prevent stacking
+				dropdown.onchange = null;
+				dropdown.onchange = function () {
+					userStatsCurrent.month = this.value;
+					setStatus("Loading user stats...", "waiting");
+					ws.send(JSON.stringify({ action: "getuser", user: userStatsCurrent.user, month: userStatsCurrent.month }));
+				};
+				// --- Monthly Stats Table ---
+				let stats = data.MonthlyStats || {};
+				if (!Object.keys(stats).length) stats = data;
+				const fields = [
+					["Points", stats.Points],
+					["Redemptions", stats.Redemptions],
+					["Points Spent", stats.PointsSpent],
+					["Chat Msgs", stats.ChatMessages],
+					["Watch Time", stats.WatchSeconds ? Math.round(stats.WatchSeconds / 60) + " min" : 0],
+					["Highest Streak", stats.HighestStreak],
+					["Streams Watched", stats.StreamsWatched],
+					["Bits Cheered", stats.BitsCheered],
+					["Gifted Subs", stats.GiftedSubs],
+					["Timeouts", stats.Timeouts],
+					["Bans", stats.Bans],
+				];
+				let table = "";
+				fields.forEach(([label, value]) => {
+					table += `<tr><td>${label}</td><td class="text-end">${value || 0}</td></tr>`;
+				});
+				document.getElementById("userStatsTable").innerHTML = table;
+				// Show modal if not visible
+				if (!userStatsModalInstance) {
+					userStatsModalInstance = new bootstrap.Modal(document.getElementById("userStatsModal"));
+					userStatsModalInstance.show();
+				}
+			}
+
+			// Reset modal instance when closed
+			document.getElementById("userStatsModal").addEventListener("hidden.bs.modal", function () {
+				userStatsModalInstance = null;
+			});
+
+			// --- Settings ---
+			function renderBasePoints(basePoints) {
+				const container = document.getElementById("basePointsList");
+				if (!container) return;
+				container.innerHTML = "";
+				Object.entries(basePoints).forEach(([event, points]) => {
+					const row = document.createElement("div");
+					row.className = "d-flex align-items-center mb-2 base-point-row";
+					row.innerHTML = `
+            <input type="text" class="form-control form-control-sm event-name me-2" style="max-width:160px;" value="${event}" ${event === "Streak" ? "readonly" : ""}>
+            <input type="number" class="form-control form-control-sm base-point-val me-2" value="${points}" step="any">
+        `;
+					container.appendChild(row);
+				});
+			}
+
+			function renderStreakTypes(streakTypes) {
+				const container = document.getElementById("streakTypesList");
+				if (!container) return;
+				container.innerHTML = "";
+				Object.entries(streakTypes).forEach(([event, enabled]) => {
+					const row = document.createElement("div");
+					row.className = "form-check form-switch d-flex align-items-center mb-2 streak-type-row";
+					row.innerHTML = `
+            <input class="form-check-input streak-toggle" type="checkbox" id="streak-${event}" ${enabled ? "checked" : ""}>
+            <label class="form-check-label ms-2" for="streak-${event}">${event}</label>
+        `;
+					container.appendChild(row);
+				});
+			}
+
+			function populateSettingsModal(settings) {
+				document.getElementById("inputResetDay").value = settings.resetDay || 1;
+				document.getElementById("inputCurrentWinner").value = settings.currentWinner || "";
+				document.getElementById("inputRedemptionMode").value = settings.redemptionPointMode || "perRedemption";
+				renderBasePoints(settings.basePoints || {});
+				renderStreakTypes(settings.streakTypes || {});
+			}
+
+			// --- Main DOM bindings ---
+			document.addEventListener("DOMContentLoaded", function () {
+				connectWebsocket();
+
+				document.getElementById("refreshLeaderboard").onclick = function () {
+					let month = document.getElementById("monthDropdown").value;
+					selectedMonth = month;
+					setStatus("Fetching leaderboard...", "waiting");
+					ws.send(JSON.stringify({ action: "getleaderboard", month }));
+				};
+				document.getElementById("monthDropdown").onchange = function () {
+					let month = this.value;
+					selectedMonth = month;
+					setStatus("Fetching leaderboard...", "waiting");
+					ws.send(JSON.stringify({ action: "getleaderboard", month }));
+				};
+
+				document.getElementById("saveSettings").onclick = function () {
+					let basePoints = {};
+					document.querySelectorAll("#basePointsList .base-point-row").forEach((row) => {
+						const name = row.querySelector(".event-name").value.trim();
+						const val = Number(row.querySelector(".base-point-val").value);
+						if (name) basePoints[name] = val;
+					});
+					let streakTypes = {};
+					document.querySelectorAll("#streakTypesList .streak-type-row").forEach((row) => {
+						const event = row.querySelector("label").innerText;
+						const enabled = row.querySelector(".streak-toggle").checked;
+						if (event) streakTypes[event] = enabled;
+					});
+					let resetDay = document.getElementById("inputResetDay").value;
+					let currentWinner = document.getElementById("inputCurrentWinner").value;
+					let redemptionPointMode = document.getElementById("inputRedemptionMode").value;
+					setStatus("Saving settings...", "waiting");
+					ws.send(
+						JSON.stringify({
+							action: "setsettings",
+							resetDay: Number(resetDay),
+							basePoints,
+							streakTypes,
+							currentWinner,
+							redemptionPointMode,
+						})
+					);
+				};
+			});
+
+			// --- Leaderboard/CurrentWinner/AllTimeWinners ---
+			function renderLeaderboard(entries) {
+				let medalHTML = "";
+				let table = document.getElementById("leaderboardTable");
+				table.innerHTML = "";
+				entries.forEach((entry, idx) => {
+					if (idx < 3) {
+						const medals = ["🥇", "🥈", "🥉"];
+						const classes = ["gold", "silver", "bronze"];
+						medalHTML += `
+                <div class="card text-center flex-fill" style="max-width:220px;">
+                    <div class="card-body">
+                        <div class="medal ${classes[idx]}">${medals[idx]}</div>
+                        <img src="${entry.avatar}" class="leaderboard-avatar my-2" style="width:64px;height:64px">
+                        <div>
+                        <a href="#" class="fw-bold" onclick="showUserStatsModal('${entry.displayName || entry.user}');return false;">
+                            ${entry.displayName || entry.user}
+                        </a>
+                        </div>
+                        <div class="small">${entry.points} points</div>
+                    </div>
+                </div>
+            `;
+					} else {
+						table.innerHTML += `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td><img src="${entry.avatar}" class="leaderboard-avatar" style="width:32px;height:32px"></td>
+                    <td>
+                    <a href="#" class="fw-semibold" onclick="showUserStatsModal('${entry.displayName || entry.user}');return false;">
+                        ${entry.displayName || entry.user}
+                    </a>
+                    </td>
+                    <td>${entry.points}</td>
+                </tr>
+            `;
+					}
+				});
+				document.getElementById("medalCards").innerHTML = medalHTML;
+			}
+
+			function renderCurrentWinner(user) {
+				document.getElementById("currentWinnerAvatar").src = user.avatar || "https://placehold.co/64x64";
+				document.getElementById("currentWinnerName").innerText = user.displayName || user.user || "None";
+				document.getElementById("currentWinnerPoints").innerText = (user.points || 0) + " points";
+			}
+			function renderAllTimeWinners(allTime) {
+				let html = "";
+				const monthKeys = Object.keys(allTime || {}).sort((a, b) => b.localeCompare(a));
+				if (monthKeys.length === 0) {
+					html = `<div class="text-secondary small">No data yet.</div>`;
+				} else {
+					monthKeys.forEach((month) => {
+						html += `<div class="fw-semibold mt-2">${month}</div><ul>`;
+						(allTime[month] || []).forEach((w, idx) => {
+							const medals = ["<span class='medal gold'>🥇</span>", "<span class='medal silver'>🥈</span>", "<span class='medal bronze'>🥉</span>"];
+							html += `<li>${medals[idx] || ""}<span class="fw-semibold ms-1">${w.UserName || w.user || "?"}</span>
+                <span class="text-secondary ms-1">(${w.Points || w.points || "0"} pts)</span></li>`;
+						});
+						html += `</ul>`;
+					});
+				}
+				document.getElementById("allTimeWinners").innerHTML = html;
+			}
+		</script>
+	</body>
+</html>

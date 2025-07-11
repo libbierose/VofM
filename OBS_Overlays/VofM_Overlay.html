@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Viewer of the Month Badge Overlay</title>
+  <style>
+    body {
+      margin: 0;
+      background: transparent;
+      width: 450px; height: 450px;
+      overflow: hidden;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    .container {
+      position: relative;
+      width: 450px; height: 450px;
+    }
+    .profile-photo, .status {
+      position: absolute;
+      left: 85px;   /* Centered for 300x300 inside 450x450 */
+      top: 100px;
+      width: 280px;
+      border-radius: 50%;
+    }
+    .profile-photo {
+      object-fit: cover;
+      z-index: 1;
+      box-shadow: 0 0 24px #ffd700a0;
+      display: none;
+      background: #2c2c2c;
+    }
+    .status {
+        position: absolute;
+        left: 85px;    /* (450 - 250) / 2 */
+        top: 101px;     /* (450 - 250) / 2 */
+        width: 239px;
+        height: 276px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #ffd700;
+        background: rgba(30,30,30,0.88);
+        font-size: 2.1rem;
+        font-weight: bold;
+        z-index: 2;
+        box-shadow: 0 0 32px #000a;
+        border: 2px solid #ffd70080;
+        animation: pulse 1.6s infinite alternate;
+        pointer-events: none;
+        padding: 0 18px;
+        user-select: none;
+    }
+    .badge {
+      position: absolute;
+      top: 0; left: 0;
+      width: 450px;
+      z-index: 3;   /* Badge is on top of photo and status */
+      pointer-events: none;
+      user-select: none;
+      
+    }
+    @keyframes pulse {
+      from { box-shadow: 0 0 24px #ffd70020; }
+      to   { box-shadow: 0 0 60px #ffd70070; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img id="profilePhoto" class="profile-photo" src="" alt="Viewer of the Month" />
+    <div id="status" class="status">Connecting…</div>
+    <img class="badge" src="badge.png" alt="Badge" draggable="false" />
+  </div>
+  <script>
+    // CONFIG
+    const WEBSOCKET_URL = "ws://localhost:9292"; // Change to your server/Streamer.bot ws url
+
+    // Elements
+    const photo = document.getElementById('profilePhoto');
+    const status = document.getElementById('status');
+
+    let ws = null;
+    let photoLoaded = false;
+    let connectingTimeout = null;
+
+    // Set Status Helper
+    function setStatus(text, color = "#ffd700") {
+      status.textContent = text;
+      status.style.color = color;
+      status.style.display = "flex";
+      photo.style.display = "none";
+    }
+
+    // Show Profile Photo
+    function showPhoto(src) {
+      setStatus("Loading…");
+      photo.onload = () => {
+        status.style.display = "none";
+        photo.style.display = "block";
+        photoLoaded = true;
+      };
+      photo.onerror = () => {
+        setStatus("Failed to load image!", "#ff6060");
+        photo.style.display = "none";
+        photoLoaded = false;
+      };
+      photo.src = src;
+    }
+
+    // WebSocket Logic
+    function startWebSocket() {
+      setStatus("Connecting…");
+      ws = new WebSocket(WEBSOCKET_URL);
+
+      ws.onopen = () => {
+        setStatus("Waiting for profile photo…", "#ffd700");
+        ws.send(JSON.stringify({ action: "getcurrentwinner" }));
+      };
+
+      ws.onmessage = evt => {
+        let msg;
+        try { msg = JSON.parse(evt.data); } catch (e) { setStatus("Received invalid message", "#ff6060"); return; }
+
+            if (msg.type === "currentwinner") {
+                setStatus("Loaded current winner", "info");
+                renderCurrentWinner(msg);
+            }
+      };
+
+      ws.onerror = () => {
+        setStatus("WebSocket error!", "#ff6060");
+        ws.close();
+      };
+
+      ws.onclose = () => {
+        setStatus("WebSocket offline", "#ffd700");
+        // Try to reconnect after 3 seconds
+        setTimeout(startWebSocket, 3000);
+      };
+    }
+
+    function renderCurrentWinner(user) {
+        showPhoto(user.avatar || "https://placehold.co/64x64");
+    }
+
+    startWebSocket();
+  </script>
+</body>
+</html>

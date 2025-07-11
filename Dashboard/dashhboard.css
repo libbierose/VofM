@@ -1,0 +1,990 @@
+/* === General Body Styles === */
+body {
+	background: #221f3b;
+	color: #fff;
+	font-family: "Segoe UI", Arial, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.title {
+	color: #fff;
+	font-weight: 700;
+	margin-bottom: 18px;
+	letter-spacing: 1px;
+}
+
+.dashboard-footer {
+	position: fixed;
+	left: 0;
+	bottom: 0;
+	width: 100vw;
+	background: #1c1b26e8;
+	color: #e6e0ff;
+	text-align: center;
+	font-size: 1rem;
+	font-family: "Segoe UI", Arial, sans-serif;
+	padding: 10px 0;
+	z-index: 1100;
+	letter-spacing: 0.04em;
+	box-shadow: 0 -2px 16px #0004;
+	border-top: 1px solid #2c2747;
+}
+
+@media (max-width: 600px) {
+	.dashboard-footer {
+		font-size: 0.85rem;
+		padding: 7px 0;
+	}
+}
+
+.gold {
+	color: gold;
+}
+.silver {
+	color: #c7c7c7;
+}
+.bronze {
+	color: #cd7f32;
+}
+
+/* === Dashboard Container Styles === */
+.dashboard-container {
+	background: #27224b;
+	border-radius: 0 0 2rem 2rem;
+	padding: 0px !important;
+	max-width: 1200px;
+	margin: 0px auto;
+	box-shadow: 0 6px 32px #0004;
+}
+.dashboard-body {
+	overflow: scroll;
+	padding: 0px 28px 28px 28px;
+	max-width: 100%;
+	height: 900px;
+}
+
+.header-bg {
+	position: relative;
+	background: linear-gradient(160deg, #612bc7 50%, pink 100%);
+	padding: 2rem 1.5rem 1.5rem 1.5rem;
+	border-radius: 0 0 2rem 2rem;
+}
+.header-title {
+	font-size: 2.2rem;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+.current-vofm-card {
+	background: linear-gradient(160deg, #612bc7 50%, pink 100%);
+	color: #fff;
+	border-radius: 1rem;
+	box-shadow: 0 2px 8px #0002;
+	min-width: 300px;
+	max-width: 370px;
+	border: 2.5px solid gold;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 18px;
+	margin-bottom: 0;
+}
+
+.current-vofm-avatar {
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	border: 3px solid #ffe366;
+	background: #191c31;
+	object-fit: cover;
+	margin-bottom: 0;
+}
+
+.current-vofm-header {
+	font-size: 0.92em;
+	color: #ffe366;
+	opacity: 0.86;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+#currentWinnerName {
+	font-weight: 700;
+	font-size: 1.25rem;
+	margin-bottom: 1px;
+}
+
+#currentWinnerPoints {
+	font-size: 1.01rem;
+	color: #ffe366;
+	opacity: 0.86;
+}
+
+/* === Podium Container Styles === */
+.podium-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+	padding: 0 100px; /* 100px padding left/right */
+	gap: 2.5rem;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.podium-card {
+	flex: 1 1 0;
+	width: 320px !important;
+	margin: 0 0.5rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	background: linear-gradient(160deg, #612bc7 50%, pink 100%);
+	border-radius: 1.5rem 1.5rem 0.7rem 0.7rem;
+	box-shadow: 0 4px 24px #0005;
+	min-width: 130px;
+	padding: 1.1rem 1rem 1.5rem 1rem;
+	margin-bottom: 0;
+	transition: box-shadow 0.2s;
+}
+
+.podium-card:hover {
+	box-shadow: 0 8px 32px #8474f9cc;
+}
+
+.podium-card.glow-update {
+	box-shadow: 0 0 16px 8px #ffe16c, 0 4px 24px #0005;
+	transition: box-shadow 0.5s;
+}
+
+.points.highlight-update {
+	background: #fffae1;
+	color: #191818 !important;
+	box-shadow: 0 0 6px #ffe16c;
+	border-radius: 5px;
+	transition: background 0.4s, color 0.4s;
+}
+
+.podium-1 {
+	height: 275px;
+	z-index: 2;
+	margin-bottom: 0;
+	border: 2.5px solid gold;
+}
+
+.podium-2 {
+	height: 250px;
+	border: 2.5px solid #b8b8b8;
+}
+
+.podium-3 {
+	height: 225px;
+	border: 2.5px solid #cd7f32;
+}
+
+.podium-medal {
+	font-size: 2.3rem;
+	font-weight: bold;
+	margin-bottom: 0.3rem;
+}
+
+.podium-medal.gold {
+	color: gold;
+}
+.podium-medal.silver {
+	color: #b8b8b8;
+}
+.podium-medal.bronze {
+	color: #cd7f32;
+}
+
+.podium-avatar {
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	border: 3px solid #fff6;
+	background: #191c31;
+	object-fit: cover;
+	margin-bottom: 0.4rem;
+}
+
+.podium-1 .podium-avatar {
+	width: 88px;
+	height: 88px;
+	border: 3px solid gold;
+}
+.podium-2 .podium-avatar {
+	width: 70px;
+	height: 70px;
+	border: 3px solid #b8b8b8;
+}
+.podium-3 .podium-avatar {
+	width: 66px;
+	height: 66px;
+	border: 3px solid #cd7f32;
+}
+
+.podium-username {
+	font-weight: 700;
+	font-size: 1.18rem;
+	margin-bottom: 0.1rem;
+	color: #ffe366;
+	text-shadow: 1px 2px 10px #0006;
+}
+
+.podium-points {
+	font-size: 1.04rem;
+	color: #fff;
+	opacity: 0.92;
+}
+
+.sidebar-card {
+	height: 100%;
+	background: #222234;
+	border-radius: 1.2rem;
+	box-shadow: 0 2px 8px #0002;
+	padding: 1.3rem;
+}
+.all-time-winners {
+	font-size: 1.09rem;
+}
+.all-time-winners .medal {
+	font-size: 1.3rem;
+	vertical-align: middle;
+}
+.all-time-winners .gold {
+	color: gold;
+}
+.all-time-winners .silver {
+	color: #c7c7c7;
+}
+.all-time-winners .bronze {
+	color: #cd7f32;
+}
+
+.alltime-list {
+	list-style: none;
+	padding-left: 0;
+	margin-bottom: 0.3em;
+}
+.alltime-list li {
+	display: flex;
+	align-items: center; /* Vertically align medal and text block */
+	margin-bottom: 1em;
+}
+
+.alltime-medal {
+	font-size: 1.4em; /* Smaller but still visible */
+	margin-right: 0.7em;
+	width: 1.7em; /* Ensures left alignment */
+	text-align: center;
+	flex-shrink: 0;
+}
+
+.alltime-winner-block {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	min-width: 0;
+}
+
+.alltime-list .fw-semibold {
+	display: block;
+	font-weight: 600;
+	color: #fff;
+	font-size: 1em; /* Smaller font for the name */
+	line-height: 1.15;
+	margin-bottom: 1px;
+	letter-spacing: 0.01em;
+}
+
+.alltime-points {
+	font-size: 0.88em; /* Smaller than name */
+	color: #b7b6c9;
+	font-weight: 400;
+	margin-top: 0;
+	padding: 0;
+	line-height: 1.08;
+}
+
+#monthDropdown:disabled {
+	opacity: 0.6;
+	pointer-events: none;
+}
+#refreshBtn:disabled {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+.leaderboard-avatar {
+	width: 36px !important;
+	height: 36px !important;
+	border-radius: 50%;
+	object-fit: cover;
+}
+.dt-paging .dt-paging-button {
+	border-radius: 0.7rem !important;
+}
+.leaderboard-table th,
+.leaderboard-table td {
+	border: none !important;
+	background: transparent !important;
+	padding: 0.45rem 0.7rem;
+	vertical-align: middle;
+}
+
+.leaderboard-table th {
+	color: #bbb;
+	font-weight: 600;
+	font-size: 1.03rem;
+	background: #23233a !important;
+	letter-spacing: 0.03em;
+}
+
+.leaderboard-table tbody tr {
+	background: #23233a;
+	transition: background 0.2s;
+}
+.leaderboard-table tbody tr:hover {
+	background: #2b2554;
+}
+
+.leaderboard-table td {
+	font-size: 1.01rem;
+	color: #fff;
+	background: none;
+}
+
+.card,
+.table {
+	background: #23233a !important;
+}
+
+@media (max-width: 1300px) {
+	.container-fluid {
+		max-width: 99vw;
+	}
+}
+.card {
+	background: #222334 !important;
+	border: none;
+}
+
+.toolbar {
+	margin-bottom: 1.2rem;
+	padding-top: 0.4rem;
+	padding-bottom: 0.4rem;
+	color: white !important;
+	/* Optional: add a subtle border or background */
+}
+
+.toolbar .form-check-label {
+	margin-bottom: 0;
+	font-weight: 400;
+	font-size: 1rem;
+	margin-left: 0.3em;
+}
+.toolbar .form-switch .form-check-input {
+	cursor: pointer;
+	margin-top: 0;
+}
+#refreshBtn {
+	margin-left: 0.6em;
+}
+#searchInput {
+	background: #181733;
+	border: 1px solid #35314a;
+	color: #fff;
+}
+
+.table th,
+.table td {
+	vertical-align: middle;
+}
+.table-dark {
+	background-color: #191b21 !important;
+}
+.modal-content {
+	background-color: #24253a !important;
+}
+.form-label {
+	color: #e0e0e0;
+}
+.form-control,
+.form-select {
+	background: #24253a !important;
+	color: #fff !important;
+	border: 1px solid #444;
+}
+#status {
+	min-width: 180px;
+	transition: color 0.3s, opacity 0.3s;
+}
+.status-success {
+	color: #19db71;
+}
+.status-danger {
+	color: #fa4b4b;
+}
+.status-waiting {
+	color: #ffe366;
+}
+.status-info {
+	color: #54a0fa;
+}
+
+.status-bottom {
+	position: absolute;
+	left: 18px;
+	bottom: 14px;
+	z-index: 2;
+	pointer-events: none;
+}
+@media (max-width: 600px) {
+	.status-bottom {
+		left: 10px;
+		bottom: 8px;
+		font-size: 13px;
+	}
+}
+.base-point-row,
+.streak-type-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 6px;
+}
+.base-point-row input[type="number"] {
+	max-width: 80px;
+}
+.remove-base-point,
+.remove-streak-type {
+	color: #fa4b4b;
+	border: none;
+	background: none;
+	font-size: 1.2rem;
+	line-height: 1;
+	cursor: pointer;
+}
+.form-switch {
+	margin-bottom: 0;
+}
+/* User stats modal layout */
+#userStatsModal .modal-body .row {
+	align-items: center;
+}
+#userStatsAvatar {
+	width: 80px;
+	height: 80px;
+	border-radius: 50%;
+	border: 2px solid #555;
+	object-fit: cover;
+}
+@media (max-width: 600px) {
+	#userStatsAvatar {
+		width: 60px;
+		height: 60px;
+	}
+}
+.userstats-username {
+	font-size: 1.3rem;
+	font-weight: 600;
+}
+.userstats-label {
+	color: #d0c8e8;
+}
+.userstats-value {
+	font-weight: 600;
+}
+
+/* Align the switch with text/buttons in a row */
+.form-switch {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0 !important;
+	/* Optional: fix line height */
+	line-height: 1.6;
+}
+
+.form-switch .form-check-input[type="checkbox"] {
+	margin-top: 0 !important;
+	margin-right: 0.5rem;
+	vertical-align: middle;
+	/* Optional: slightly reduce switch size if you want */
+	/* transform: scale(0.93); */
+}
+
+.form-switch .form-check-input[type="checkbox"] {
+	margin-top: 2px !important;
+}
+
+/* === DataTables v2.x theme fix and custom === */
+
+/* Table styling */
+table.dt-table {
+	background: #222334 !important;
+	color: #fff !important;
+	border-radius: 14px;
+	font-size: 1.08rem;
+	border-collapse: separate !important;
+	border-spacing: 0;
+	width: 100% !important;
+}
+table.dt-table thead th,
+table.dt-table thead td {
+	background: #181433 !important;
+	color: #ffe366 !important;
+	border-bottom: 2px solid #7d58c2 !important;
+	font-weight: 600;
+	font-size: 1.04em;
+	text-align: left;
+	vertical-align: middle;
+}
+table.dt-table tbody td {
+	background: #222334 !important;
+	color: #fff !important;
+	border-bottom: 1px solid #313357 !important;
+	vertical-align: middle;
+	padding-top: 0.6em;
+	padding-bottom: 0.6em;
+}
+table.dt-table tr.dt-row-selected td {
+	background: #37287e !important;
+}
+table.dt-table .points {
+	font-family: "Fira Mono", monospace, monospace;
+	font-size: 1.06rem;
+}
+
+/* Avatar size override */
+table.dt-table .leaderboard-avatar {
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	border: 2px solid #332b50;
+	object-fit: cover;
+	background: #181433;
+}
+
+table.dt-table .highlight-update {
+	background: #2478e0 !important;
+	color: #ffe366 !important;
+	animation: pointFlash 1s;
+}
+@keyframes pointFlash {
+	from {
+		background: #ffe366;
+		color: #222334;
+	}
+	to {
+		background: #2478e0;
+		color: #ffe366;
+	}
+}
+
+/* --- DataTables 2.x Pagination Buttons --- */
+/* --- DataTables 2.x Pagination Buttons: Custom Style --- */
+.dt-paging {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: #fff !important;
+	margin-top: 2rem;
+	margin-bottom: 2px;
+}
+
+.dt-paging nav {
+	overflow: visible !important;
+	display: flex;
+	gap: 0.5em;
+}
+
+.dt-paging-button {
+	border: none;
+	background: #272752 !important;
+	color: #fff !important;
+	font-size: 1.08rem;
+	padding: 0.58em 1.15em;
+	margin: 0;
+	border-radius: 12px;
+	box-shadow: 0 2px 10px #0004;
+	outline: none;
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.dt-paging-button:not(.disabled):hover,
+.dt-paging-button:not(.disabled):focus {
+	background: #7d58c2;
+	color: #ffe366;
+	z-index: 2;
+	box-shadow: 0 4px 18px #0005;
+}
+
+.dt-paging-button.current,
+.dt-paging-button:active {
+	background: #252553;
+	color: #fff;
+	box-shadow: 0 4px 18px 0 #4775fa44, 0 0 0 2px #4775fa99;
+	/* Remove outline if any: */
+	outline: none;
+	/* Optional: for smoother edges */
+	border: none;
+}
+
+.dt-paging-button.disabled {
+	background: #23233a;
+	color: #ffffff !important;
+	cursor: not-allowed;
+	opacity: 1 !important;
+	box-shadow: none;
+}
+
+@media (max-width: 600px) {
+	.dt-paging-button {
+		color: #fff !important;
+		padding: 0.55em 0.7em;
+		font-size: 1em;
+	}
+}
+
+/* Info Row */
+.dt-info {
+	color: #aaa !important;
+	background: none !important;
+	border: none !important;
+	margin-top: 0.6rem;
+	font-size: 1em;
+	padding-left: 2px;
+}
+
+/* Search (default, can be hidden if you use a custom) */
+.dt-search {
+	display: none !important;
+}
+.dt-search input[type="search"] {
+	background: #181433 !important;
+	color: #fff !important;
+	border: 1px solid #332b50 !important;
+	border-radius: 7px !important;
+	box-shadow: none !important;
+	outline: none !important;
+	padding: 6px 11px;
+	font-size: 1em;
+}
+
+/* Container override for DataTables v2 */
+.dt-container {
+	background: none !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+/*! Settings Modal !*/
+
+.settings-modal {
+	width: 500px;
+}
+
+.settings-modal-content {
+	background: #23233a;
+	color: #eee !important;
+	border-radius: 18px;
+	box-shadow: 0 6px 32px #0007;
+	border: none;
+}
+.settings-modal-content .modal-header {
+	border-bottom: 1px solid #322e5b;
+	background: linear-gradient(160deg, #612bc7 55%, pink 100%);
+	color: #fff;
+	border-radius: 18px 18px 0 0;
+}
+.settings-modal-content .modal-footer {
+	border-top: 1px solid #322e5b;
+	background: #23233a;
+	border-radius: 0 0 18px 18px;
+}
+.settings-modal-content .form-label {
+	color: #dbd5ff;
+}
+.settings-modal-content .form-control,
+.settings-modal-content .form-select {
+	background: #29294a;
+	color: #fff;
+	border: 1px solid #3a3660;
+}
+.settings-modal-content .form-text {
+	color: #aea1f6;
+	font-size: 0.95em;
+}
+
+/* Set fixed height for modal and make content scroll if needed */
+.modal-dialog {
+	max-width: 520px; /* Optional: control width */
+}
+.modal-content {
+	background: linear-gradient(135deg, #23233a 70%, #3d347e 100%) !important;
+	color: #fff;
+	min-height: 540px; /* Minimum height */
+	max-height: 640px; /* Maximum height */
+	height: 600px; /* Fixed height (adjust as needed) */
+	overflow: hidden;
+	border-radius: 18px;
+}
+
+.modal-body,
+.tab-content {
+	height: 400px; /* Adjust: total height minus header/footer */
+	overflow-y: auto;
+	padding-bottom: 0;
+}
+
+.form-label,
+.form-text,
+.text-secondary {
+	color: #e0e0e0 !important;
+	opacity: 0.9;
+}
+
+.nav-tabs .nav-link {
+	color: #d0c9ef;
+	border: none;
+	background: transparent;
+}
+.nav-tabs .nav-link.active {
+	color: #fff;
+	background: #573dc2;
+	border-radius: 8px 8px 0 0;
+	font-weight: bold;
+}
+
+/*! User Stats Modal !*/
+/* General dark modal background */
+.user-stats-modal .modal-content {
+	background: #23233a;
+	border-radius: 18px;
+	border: none;
+	box-shadow: 0 8px 32px #0007;
+	color: #fff;
+}
+
+/* Avatar Style */
+.user-stats-avatar {
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	border: 2.5px solid #7159ff60;
+	object-fit: cover;
+	background: #181433;
+}
+
+/* Labels */
+.stat-label {
+	color: #b3aef7;
+	font-weight: 500;
+}
+
+/* Month dropdown wrapper */
+#userStatsMonthDropdownWrap {
+	margin-top: 2px;
+}
+
+/* Month Dropdown */
+#userStatsMonthDropdown {
+	background: #191936;
+	color: #e0e0fa;
+	border: 1px solid #3e3e57;
+	font-size: 0.93rem;
+	border-radius: 6px;
+}
+
+/* Table inside modal */
+.user-stats-table {
+	background: none;
+	color: #fff;
+	border-color: #35305a;
+}
+.user-stats-table th,
+.user-stats-table td {
+	border-color: #35305a;
+	background: transparent;
+}
+.user-stats-table tr td:first-child {
+	color: #b3aef7;
+	font-weight: 500;
+}
+
+.user-stats-table tr td:last-child {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Modal header and footer tweaks */
+.user-stats-modal .modal-header {
+	background: linear-gradient(90deg, #6446e0 0%, #c468e6 100%);
+	color: #fff;
+	border-top-left-radius: 18px;
+	border-top-right-radius: 18px;
+	border-bottom: none;
+	min-height: 80px;
+}
+.user-stats-modal .modal-footer {
+	background: #23233a;
+	border-bottom-left-radius: 18px;
+	border-bottom-right-radius: 18px;
+	border-top: none;
+}
+
+/* Remove focus ring on dropdown in modal */
+.user-stats-modal select:focus {
+	outline: none;
+	box-shadow: 0 0 0 1.5px #8e76ff;
+}
+
+/* Responsive: shrink avatar and fonts on mobile */
+@media (max-width: 480px) {
+	.user-stats-avatar {
+		width: 44px;
+		height: 44px;
+	}
+	.user-stats-modal .modal-header {
+		min-height: 60px;
+	}
+	.user-stats-modal .modal-content {
+		border-radius: 12px;
+	}
+}
+
+/* Fade-in effect when modal is shown (optional) */
+.user-stats-modal .modal-content {
+	animation: fadeInModal 0.32s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+@keyframes fadeInModal {
+	from {
+		opacity: 0;
+		transform: translateY(40px) scale(0.97);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* Smaller font and tighter spacing for the user stats modal */
+#userStatsModal .modal-body {
+	font-size: 0.96rem; /* Smaller font (default is 1rem) */
+	padding-top: 0.5rem;
+	padding-bottom: 1rem;
+}
+
+#userStatsModal .alltime-stats-row {
+	margin-bottom: 0.2rem; /* Less vertical gap */
+	font-size: 0.96rem;
+	display: flex;
+	justify-content: flex-start;
+	gap: 0.8em;
+	align-items: center;
+}
+
+#userStatsModal .alltime-stats-label {
+	font-weight: 400;
+	color: #bfc3e0;
+	min-width: 170px;
+	text-align: right;
+}
+
+#userStatsModal .alltime-stats-value {
+	font-weight: 700;
+	color: #fff;
+}
+
+#userStatsModal .modal-table {
+	font-size: 0.95rem;
+}
+
+#userStatsModal .modal-header {
+	padding-bottom: 0.5rem;
+}
+
+/* Smaller font and tighter spacing for the user stats modal */
+#userStatsModal .modal-body {
+	font-size: 0.96rem; /* Smaller font (default is 1rem) */
+	padding-top: 0.5rem;
+	padding-bottom: 1rem;
+}
+
+#userStatsModal .alltime-stats-row {
+	font-size: 0.8rem !important;
+	display: flex;
+	justify-content: flex-start;
+	gap: 0.8em;
+	align-items: center;
+}
+
+#userStatsModal .alltime-stats-label {
+	font-weight: 400;
+	color: #bfc3e0;
+	min-width: 170px;
+	text-align: right;
+}
+
+#userStatsModal .alltime-stats-value {
+	font-weight: 700;
+	color: #fff;
+}
+
+#userStatsModal .modal-table {
+	font-size: 0.95rem;
+}
+
+#userStatsModal .modal-header {
+	padding-bottom: 0.5rem;
+}
+
+#userStatsModal .alltime-section {
+	margin: 0.4rem 0 0.8rem 0;
+}
+#userStatsModal .alltime-title {
+	font-size: 1.05rem;
+	font-weight: 600;
+	color: #bfc3e0;
+	margin-bottom: 0.6rem;
+	letter-spacing: 0.02em;
+}
+
+#userStatsModal .alltime-stats-cards {
+	display: flex;
+	gap: 1rem;
+	justify-content: flex-start;
+	flex-wrap: wrap;
+}
+
+#userStatsModal .alltime-card {
+	background: rgba(60, 63, 110, 0.93);
+	border-radius: 10px;
+	box-shadow: 0 1.5px 8px 0 #15152122;
+	padding: 0.55rem 1.2rem 0.4rem 1.2rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-width: 88px;
+}
+
+#userStatsModal .alltime-label {
+	color: #a5aacb;
+	font-size: 0.94rem;
+	margin-bottom: 0.14rem;
+	font-weight: 500;
+	text-align: center;
+	letter-spacing: 0.01em;
+}
+#userStatsModal .alltime-value {
+	font-size: 1.13rem;
+	font-weight: 700;
+	color: #fff;
+	text-align: center;
+	letter-spacing: 0.01em;
+}
