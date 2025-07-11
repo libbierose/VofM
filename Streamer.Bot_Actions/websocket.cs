@@ -94,6 +94,7 @@ public class CPHInline
         var basePoints = GetGlobalDict<string, double>("VofM_BasePoints");
         var streakTypes = GetGlobalDict<string, bool>("VofM_StreakTypes");
         var redemptionPointMode = CPH.GetGlobalVar<string>("VofM_RedemptionPointMode", true) ?? "perRedemption";
+        string currentWinner = CPH.GetGlobalVar<string>("VofM_CurrentWinner", true) ?? "";
 
         var payload = new Dictionary<string, object>
         {
@@ -101,7 +102,8 @@ public class CPHInline
             { "resetDay", resetDay },
             { "basePoints", basePoints },
             { "streakTypes", streakTypes },
-            { "redemptionPointMode", redemptionPointMode }
+            { "redemptionPointMode", redemptionPointMode },
+            { "currentWinner", currentWinner }
         };
         string json = JsonConvert.SerializeObject(payload);
         if (broadcast)
@@ -123,6 +125,10 @@ public class CPHInline
             SetGlobalDict("VofM_StreakTypes", JsonConvert.DeserializeObject<Dictionary<string, bool>>(dict["streakTypes"].ToString()));
         if (dict.ContainsKey("redemptionPointMode"))
             CPH.SetGlobalVar("VofM_RedemptionPointMode", dict["redemptionPointMode"].ToString(), true);
+
+        // --- Add this block ---
+        if (dict.ContainsKey("currentWinner"))
+            CPH.SetGlobalVar("VofM_CurrentWinner", dict["currentWinner"].ToString(), true);
 
         var payload = new Dictionary<string, object>
         {

@@ -1,4 +1,4 @@
-/* === General Body Styles === */
+/* === 1. General Styles === */
 body {
 	background: #221f3b;
 	color: #fff;
@@ -15,30 +15,6 @@ h3,
 	letter-spacing: 1px;
 }
 
-.dashboard-footer {
-	position: fixed;
-	left: 0;
-	bottom: 0;
-	width: 100vw;
-	background: #1c1b26e8;
-	color: #e6e0ff;
-	text-align: center;
-	font-size: 1rem;
-	font-family: "Segoe UI", Arial, sans-serif;
-	padding: 10px 0;
-	z-index: 1100;
-	letter-spacing: 0.04em;
-	box-shadow: 0 -2px 16px #0004;
-	border-top: 1px solid #2c2747;
-}
-
-@media (max-width: 600px) {
-	.dashboard-footer {
-		font-size: 0.85rem;
-		padding: 7px 0;
-	}
-}
-
 .gold {
 	color: gold;
 }
@@ -49,7 +25,14 @@ h3,
 	color: #cd7f32;
 }
 
-/* === Dashboard Container Styles === */
+@media (max-width: 600px) {
+	.dashboard-footer {
+		font-size: 0.85rem;
+		padding: 7px 0;
+	}
+}
+
+/* === 2. Dashboard Layout === */
 .dashboard-container {
 	background: #27224b;
 	border-radius: 0 0 2rem 2rem;
@@ -65,6 +48,110 @@ h3,
 	height: 900px;
 }
 
+.sidebar-card {
+	height: 100%;
+	background: #222234;
+	border-radius: 1.2rem;
+	box-shadow: 0 2px 8px #0002;
+	padding: 1.3rem;
+}
+.toolbar {
+	margin-bottom: 1.2rem;
+	padding-top: 0.4rem;
+	padding-bottom: 0.4rem;
+	color: white !important;
+	/* Optional: add a subtle border or background */
+}
+
+.toolbar .form-check-label {
+	margin-bottom: 0;
+	font-weight: 400;
+	font-size: 1rem;
+	margin-left: 0.3em;
+}
+.toolbar .form-switch .form-check-input {
+	cursor: pointer;
+	margin-top: 0;
+}
+#refreshBtn {
+	margin-left: 0.6em;
+}
+#searchInput {
+	background: #181733;
+	border: 1px solid #35314a;
+	color: #fff;
+}
+
+.table th,
+.table td {
+	vertical-align: middle;
+}
+.table-dark {
+	background-color: #191b21 !important;
+}
+.form-label {
+	color: #e0e0e0;
+}
+.form-control,
+.form-select {
+	background: #24253a !important;
+	color: #fff !important;
+	border: 1px solid #444;
+}
+.base-point-row,
+.streak-type-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 6px;
+}
+.base-point-row input[type="number"] {
+	max-width: 80px;
+}
+.form-switch {
+	margin-bottom: 0;
+}
+/* User stats modal layout */
+#userStatsModal .modal-body .row {
+	align-items: center;
+}
+#userStatsAvatar {
+	width: 80px;
+	height: 80px;
+	border-radius: 50%;
+	border: 2px solid #555;
+	object-fit: cover;
+}
+@media (max-width: 600px) {
+	#userStatsAvatar {
+		width: 60px;
+		height: 60px;
+	}
+}
+
+/* Align the switch with text/buttons in a row */
+.form-switch {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0 !important;
+	/* Optional: fix line height */
+	line-height: 1.6;
+}
+
+.form-switch .form-check-input[type="checkbox"] {
+	margin-top: 0 !important;
+	margin-right: 0.5rem;
+	vertical-align: middle;
+	/* Optional: slightly reduce switch size if you want */
+	/* transform: scale(0.93); */
+}
+
+.form-switch .form-check-input[type="checkbox"] {
+	margin-top: 2px !important;
+}
+
+/* === 3. Header (Current Winner & Status) === */
 .header-bg {
 	position: relative;
 	background: linear-gradient(160deg, #612bc7 50%, pink 100%);
@@ -123,7 +210,39 @@ h3,
 	opacity: 0.86;
 }
 
-/* === Podium Container Styles === */
+#status {
+	min-width: 180px;
+	transition: color 0.3s, opacity 0.3s;
+}
+.status-success {
+	color: #19db71;
+}
+.status-danger {
+	color: #fa4b4b;
+}
+.status-waiting {
+	color: #ffe366;
+}
+.status-info {
+	color: #54a0fa;
+}
+
+.status-bottom {
+	position: absolute;
+	left: 18px;
+	bottom: 14px;
+	z-index: 2;
+	pointer-events: none;
+}
+@media (max-width: 600px) {
+	.status-bottom {
+		left: 10px;
+		bottom: 8px;
+		font-size: 13px;
+	}
+}
+
+/* === 4. Podium & Leaderboard === */
 .podium-row {
 	display: flex;
 	justify-content: space-between;
@@ -240,13 +359,7 @@ h3,
 	opacity: 0.92;
 }
 
-.sidebar-card {
-	height: 100%;
-	background: #222234;
-	border-radius: 1.2rem;
-	box-shadow: 0 2px 8px #0002;
-	padding: 1.3rem;
-}
+/* Sidebar & All-Time Winners */
 .all-time-winners {
 	font-size: 1.09rem;
 }
@@ -309,13 +422,16 @@ h3,
 	line-height: 1.08;
 }
 
-#monthDropdown:disabled {
-	opacity: 0.6;
-	pointer-events: none;
+/* === 5. DataTable & Table === */
+.leaderboard-table-wrapper {
+	height: 498px; /* Adjust to fit 7 rows + header */
+	min-height: 300px;
+	max-height: 498px;
+	overflow-y: auto;
 }
-#refreshBtn:disabled {
-	opacity: 0.6;
-	pointer-events: none;
+.leaderboard-table {
+	overflow-y: auto;
+	max-height: 450px !important; /* Adjust to fit 6-7 rows */
 }
 
 .leaderboard-avatar {
@@ -372,158 +488,7 @@ h3,
 	border: none;
 }
 
-.toolbar {
-	margin-bottom: 1.2rem;
-	padding-top: 0.4rem;
-	padding-bottom: 0.4rem;
-	color: white !important;
-	/* Optional: add a subtle border or background */
-}
-
-.toolbar .form-check-label {
-	margin-bottom: 0;
-	font-weight: 400;
-	font-size: 1rem;
-	margin-left: 0.3em;
-}
-.toolbar .form-switch .form-check-input {
-	cursor: pointer;
-	margin-top: 0;
-}
-#refreshBtn {
-	margin-left: 0.6em;
-}
-#searchInput {
-	background: #181733;
-	border: 1px solid #35314a;
-	color: #fff;
-}
-
-.table th,
-.table td {
-	vertical-align: middle;
-}
-.table-dark {
-	background-color: #191b21 !important;
-}
-.modal-content {
-	background-color: #24253a !important;
-}
-.form-label {
-	color: #e0e0e0;
-}
-.form-control,
-.form-select {
-	background: #24253a !important;
-	color: #fff !important;
-	border: 1px solid #444;
-}
-#status {
-	min-width: 180px;
-	transition: color 0.3s, opacity 0.3s;
-}
-.status-success {
-	color: #19db71;
-}
-.status-danger {
-	color: #fa4b4b;
-}
-.status-waiting {
-	color: #ffe366;
-}
-.status-info {
-	color: #54a0fa;
-}
-
-.status-bottom {
-	position: absolute;
-	left: 18px;
-	bottom: 14px;
-	z-index: 2;
-	pointer-events: none;
-}
-@media (max-width: 600px) {
-	.status-bottom {
-		left: 10px;
-		bottom: 8px;
-		font-size: 13px;
-	}
-}
-.base-point-row,
-.streak-type-row {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	margin-bottom: 6px;
-}
-.base-point-row input[type="number"] {
-	max-width: 80px;
-}
-.remove-base-point,
-.remove-streak-type {
-	color: #fa4b4b;
-	border: none;
-	background: none;
-	font-size: 1.2rem;
-	line-height: 1;
-	cursor: pointer;
-}
-.form-switch {
-	margin-bottom: 0;
-}
-/* User stats modal layout */
-#userStatsModal .modal-body .row {
-	align-items: center;
-}
-#userStatsAvatar {
-	width: 80px;
-	height: 80px;
-	border-radius: 50%;
-	border: 2px solid #555;
-	object-fit: cover;
-}
-@media (max-width: 600px) {
-	#userStatsAvatar {
-		width: 60px;
-		height: 60px;
-	}
-}
-.userstats-username {
-	font-size: 1.3rem;
-	font-weight: 600;
-}
-.userstats-label {
-	color: #d0c8e8;
-}
-.userstats-value {
-	font-weight: 600;
-}
-
-/* Align the switch with text/buttons in a row */
-.form-switch {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	margin-bottom: 0 !important;
-	/* Optional: fix line height */
-	line-height: 1.6;
-}
-
-.form-switch .form-check-input[type="checkbox"] {
-	margin-top: 0 !important;
-	margin-right: 0.5rem;
-	vertical-align: middle;
-	/* Optional: slightly reduce switch size if you want */
-	/* transform: scale(0.93); */
-}
-
-.form-switch .form-check-input[type="checkbox"] {
-	margin-top: 2px !important;
-}
-
-/* === DataTables v2.x theme fix and custom === */
-
-/* Table styling */
+/* DataTables v2.x theme fix and custom */
 table.dt-table {
 	background: #222334 !important;
 	color: #fff !important;
@@ -683,95 +648,22 @@ table.dt-table .highlight-update {
 	box-shadow: none !important;
 }
 
-/*! Settings Modal !*/
-
-.settings-modal {
-	width: 500px;
+/* === 6. User Stats Modal === */
+.user-stats-modal .modal-header {
+	background: linear-gradient(90deg, #6446e0 0%, #c468e6 100%);
+	color: #fff;
+	border-top-left-radius: 18px;
+	border-top-right-radius: 18px;
+	border-bottom: none;
+	min-height: 80px;
 }
-
-.settings-modal-content {
+.user-stats-modal .modal-footer {
 	background: #23233a;
-	color: #eee !important;
-	border-radius: 18px;
-	box-shadow: 0 6px 32px #0007;
-	border: none;
-}
-.settings-modal-content .modal-header {
-	border-bottom: 1px solid #322e5b;
-	background: linear-gradient(160deg, #612bc7 55%, pink 100%);
-	color: #fff;
-	border-radius: 18px 18px 0 0;
-}
-.settings-modal-content .modal-footer {
-	border-top: 1px solid #322e5b;
-	background: #23233a;
-	border-radius: 0 0 18px 18px;
-}
-.settings-modal-content .form-label {
-	color: #dbd5ff;
-}
-.settings-modal-content .form-control,
-.settings-modal-content .form-select {
-	background: #29294a;
-	color: #fff;
-	border: 1px solid #3a3660;
-}
-.settings-modal-content .form-text {
-	color: #aea1f6;
-	font-size: 0.95em;
+	border-bottom-left-radius: 18px;
+	border-bottom-right-radius: 18px;
+	border-top: none;
 }
 
-/* Set fixed height for modal and make content scroll if needed */
-.modal-dialog {
-	max-width: 520px; /* Optional: control width */
-}
-.modal-content {
-	background: linear-gradient(135deg, #23233a 70%, #3d347e 100%) !important;
-	color: #fff;
-	min-height: 540px; /* Minimum height */
-	max-height: 640px; /* Maximum height */
-	height: 600px; /* Fixed height (adjust as needed) */
-	overflow: hidden;
-	border-radius: 18px;
-}
-
-.modal-body,
-.tab-content {
-	height: 400px; /* Adjust: total height minus header/footer */
-	overflow-y: auto;
-	padding-bottom: 0;
-}
-
-.form-label,
-.form-text,
-.text-secondary {
-	color: #e0e0e0 !important;
-	opacity: 0.9;
-}
-
-.nav-tabs .nav-link {
-	color: #d0c9ef;
-	border: none;
-	background: transparent;
-}
-.nav-tabs .nav-link.active {
-	color: #fff;
-	background: #573dc2;
-	border-radius: 8px 8px 0 0;
-	font-weight: bold;
-}
-
-/*! User Stats Modal !*/
-/* General dark modal background */
-.user-stats-modal .modal-content {
-	background: #23233a;
-	border-radius: 18px;
-	border: none;
-	box-shadow: 0 8px 32px #0007;
-	color: #fff;
-}
-
-/* Avatar Style */
 .user-stats-avatar {
 	width: 64px;
 	height: 64px;
@@ -779,12 +671,6 @@ table.dt-table .highlight-update {
 	border: 2.5px solid #7159ff60;
 	object-fit: cover;
 	background: #181433;
-}
-
-/* Labels */
-.stat-label {
-	color: #b3aef7;
-	font-weight: 500;
 }
 
 /* Month dropdown wrapper */
@@ -823,46 +709,12 @@ table.dt-table .highlight-update {
 	font-variant-numeric: tabular-nums;
 }
 
-/* Modal header and footer tweaks */
-.user-stats-modal .modal-header {
-	background: linear-gradient(90deg, #6446e0 0%, #c468e6 100%);
-	color: #fff;
-	border-top-left-radius: 18px;
-	border-top-right-radius: 18px;
-	border-bottom: none;
-	min-height: 80px;
-}
-.user-stats-modal .modal-footer {
-	background: #23233a;
-	border-bottom-left-radius: 18px;
-	border-bottom-right-radius: 18px;
-	border-top: none;
-}
-
 /* Remove focus ring on dropdown in modal */
 .user-stats-modal select:focus {
 	outline: none;
 	box-shadow: 0 0 0 1.5px #8e76ff;
 }
 
-/* Responsive: shrink avatar and fonts on mobile */
-@media (max-width: 480px) {
-	.user-stats-avatar {
-		width: 44px;
-		height: 44px;
-	}
-	.user-stats-modal .modal-header {
-		min-height: 60px;
-	}
-	.user-stats-modal .modal-content {
-		border-radius: 12px;
-	}
-}
-
-/* Fade-in effect when modal is shown (optional) */
-.user-stats-modal .modal-content {
-	animation: fadeInModal 0.32s cubic-bezier(0.33, 1, 0.68, 1) both;
-}
 @keyframes fadeInModal {
 	from {
 		opacity: 0;
@@ -874,45 +726,8 @@ table.dt-table .highlight-update {
 	}
 }
 
-/* Smaller font and tighter spacing for the user stats modal */
 #userStatsModal .modal-body {
-	font-size: 0.96rem; /* Smaller font (default is 1rem) */
-	padding-top: 0.5rem;
-	padding-bottom: 1rem;
-}
-
-#userStatsModal .alltime-stats-row {
-	margin-bottom: 0.2rem; /* Less vertical gap */
 	font-size: 0.96rem;
-	display: flex;
-	justify-content: flex-start;
-	gap: 0.8em;
-	align-items: center;
-}
-
-#userStatsModal .alltime-stats-label {
-	font-weight: 400;
-	color: #bfc3e0;
-	min-width: 170px;
-	text-align: right;
-}
-
-#userStatsModal .alltime-stats-value {
-	font-weight: 700;
-	color: #fff;
-}
-
-#userStatsModal .modal-table {
-	font-size: 0.95rem;
-}
-
-#userStatsModal .modal-header {
-	padding-bottom: 0.5rem;
-}
-
-/* Smaller font and tighter spacing for the user stats modal */
-#userStatsModal .modal-body {
-	font-size: 0.96rem; /* Smaller font (default is 1rem) */
 	padding-top: 0.5rem;
 	padding-bottom: 1rem;
 }
@@ -937,10 +752,6 @@ table.dt-table .highlight-update {
 	color: #fff;
 }
 
-#userStatsModal .modal-table {
-	font-size: 0.95rem;
-}
-
 #userStatsModal .modal-header {
 	padding-bottom: 0.5rem;
 }
@@ -963,7 +774,7 @@ table.dt-table .highlight-update {
 	justify-content: flex-start;
 	align-items: stretch;
 	margin-bottom: 1.1rem;
-	overflow-x: auto; /* enables scrolling if too small on mobile */
+	overflow-x: auto;
 }
 
 .alltime-card {
@@ -994,4 +805,95 @@ table.dt-table .highlight-update {
 	font-weight: 700;
 	letter-spacing: 0.5px;
 	text-align: center;
+}
+
+/* === 7. Settings Modal === */
+.settings-modal {
+	width: 500px;
+}
+
+.settings-modal-content {
+	background: #23233a;
+	color: #eee !important;
+	border-radius: 18px;
+	box-shadow: 0 6px 32px #0007;
+	border: none;
+}
+.settings-modal-content .modal-header {
+	border-bottom: 1px solid #322e5b;
+	background: linear-gradient(160deg, #612bc7 55%, pink 100%);
+	color: #fff;
+	border-radius: 18px 18px 0 0;
+}
+.settings-modal-content .modal-footer {
+	border-top: 1px solid #322e5b;
+	background: #23233a;
+	border-radius: 0 0 18px 18px;
+}
+.settings-modal-content .form-label {
+	color: #dbd5ff;
+}
+.settings-modal-content .form-control,
+.settings-modal-content .form-select {
+	background: #29294a;
+	color: #fff;
+	border: 1px solid #3a3660;
+}
+.settings-modal-content .form-text {
+	color: #aea1f6;
+	font-size: 0.95em;
+}
+
+.modal-content {
+	background: linear-gradient(135deg, #23233a 70%, #3d347e 100%) !important;
+	color: #fff;
+	min-height: 540px; /* Minimum height */
+	max-height: 640px; /* Maximum height */
+	height: 600px; /* Fixed height (adjust as needed) */
+	overflow: hidden;
+	border-radius: 18px;
+}
+
+.modal-body,
+.tab-content {
+	height: 400px; /* Adjust: total height minus header/footer */
+	overflow-y: auto;
+	padding-bottom: 0;
+}
+
+.form-label,
+.form-text,
+.text-secondary {
+	color: #e0e0e0 !important;
+	opacity: 0.9;
+}
+
+.nav-tabs .nav-link {
+	color: #d0c9ef;
+	border: none;
+	background: transparent;
+}
+.nav-tabs .nav-link.active {
+	color: #fff;
+	background: #573dc2;
+	border-radius: 8px 8px 0 0;
+	font-weight: bold;
+}
+
+.vofm-input {
+	background: #23233a !important;
+	border: 1.5px solid #7d58c2 !important;
+	color: #ffe366 !important;
+	font-weight: 600;
+	border-radius: 7px;
+	box-shadow: 0 2px 8px #0002;
+	transition: border-color 0.2s, box-shadow 0.2s;
+	padding-left: 0.7em;
+	padding-right: 0.7em;
+}
+.vofm-input:focus {
+	border-color: #ffe366 !important;
+	box-shadow: 0 0 0 2px #ffe36655;
+	background: #29294c !important;
+	color: #fff !important;
 }

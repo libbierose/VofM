@@ -228,6 +228,14 @@ function connectWebSocket() {
 			renderUserStatsModal(msg.data); // Your existing function
 			// Show the modal if not already shown
 			$("#userStatsModal").modal("show");
+			setStatus("Received User Stats", "success");
+		}
+		if (msg.type === "settings-saved") {
+			setStatus("Settings saved!", "success");
+			$("#settingsModal").modal("hide");
+		}
+		if (msg.type === "settings") {
+			populateSettingsModal(msg);
 		}
 	};
 	ws.onclose = () => setTimeout(connectWebSocket, 2500);
@@ -328,11 +336,45 @@ document.getElementById("monthDropdown").onchange = function () {
 	ws.send(JSON.stringify({ action: "getleaderboard", month: selectedMonth }));
 };
 
+$("#settingsModal").on("show.bs.modal", function () {
+	ws.send(JSON.stringify({ action: "getsettings" }));
+});
+
 // Populate modal fields from current settings
 function populateSettingsModal(settings) {
-	$("#resetDayInput").val(settings.resetDay || 1);
-	$("#redemptionModeSelect").val(settings.redemptionPointMode || "perRedemption");
-	$("#currentWinnerInput").val(settings.currentWinner || "");
+	$("#inputResetDay").val(settings.resetDay || 1);
+	$("#inputRedemptionMode").val(settings.redemptionPointMode || "perRedemption");
+	$("#inputCurrentWinner").val(settings.currentWinner || "");
+
+	// Base Points
+	const basePoints = settings.basePoints || {};
+	const $basePointsList = $("#basePointsList");
+	$basePointsList.empty();
+	Object.entries(basePoints).forEach(([key, value]) => {
+		$basePointsList.append(`
+        <div class="row align-items-center mb-2">
+            <div class="col-7 text-start">
+                <label class="form-label mb-0">${key}</label>
+            </div>
+            <div class="col-5 text-end">
+                <input type="number" class="form-control form-control-sm base-point-input vofm-input" data-key="${key}" value="${value}" step="0.01" min="0" />
+            </div>
+        </div>
+    `);
+	});
+
+	// Streak Types
+	const streakTypes = settings.streakTypes || {};
+	const $streakTypesList = $("#streakTypesList");
+	$streakTypesList.empty();
+	Object.entries(streakTypes).forEach(([key, value]) => {
+		$streakTypesList.append(`
+        <div class="form-check form-switch mb-2 d-flex align-items-center">
+            <input type="checkbox" class="form-check-input streak-type-input me-2" data-key="${key}" id="streakSwitch_${key}" ${value ? "checked" : ""} />
+            <label class="form-check-label ms-1" for="streakSwitch_${key}">${key}</label>
+        </div>
+    `);
+	});
 }
 
 // Helper: Open stats modal for a given username
@@ -495,6 +537,66 @@ function renderUserStatsModal(data) {
 	}
 	window.userStatsModalInstance.show();
 }
+
+$("#saveSettings").on("click", function () {
+	const resetDay = parseInt($("#inputResetDay").val(), 10) || 1;
+	const redemptionPointMode = $("#inputRedemptionMode").val();
+	const currentWinner = $("#inputCurrentWinner").val();
+
+	// Default keys and values
+	const basePointDefaults = {
+		Streak: 1.0,
+		Watchtime: 1.0,
+		"Chat Message": 1.0,
+		"Reward Redemption": 1.0,
+		Cheer: 1.0,
+		"Gift Subscription": 1.0,
+		Subscription: 1.0,
+		Bans: 1.0,
+		Timeouts: 1.0,
+		Warnings: 1.0,
+	};
+	const streakTypeDefaults = {
+		Streak: false,
+		Watchtime: false,
+		"Chat Message": false,
+		"Reward Redemption": false,
+		Cheer: false,
+		"Gift Subscription": false,
+		Subscription: false,
+		Bans: false,
+		Timeouts: false,
+		Warnings: false,
+	};
+
+	// Gather base points
+	let basePoints = { ...basePointDefaults };
+	$(".base-point-input").each(function () {
+		const key = $(this).data("key");
+		const value = parseFloat($(this).val());
+		if (!isNaN(value)) basePoints[key] = value;
+	});
+
+	// Gather streak types
+	let streakTypes = { ...streakTypeDefaults };
+	$(".streak-type-input").each(function () {
+		const key = $(this).data("key");
+		const value = $(this).is(":checked");
+		streakTypes[key] = value;
+	});
+
+	const payload = {
+		action: "setsettings",
+		resetDay,
+		redemptionPointMode,
+		currentWinner,
+		basePoints,
+		streakTypes,
+	};
+
+	ws.send(JSON.stringify(payload));
+	setStatus("Saving settings...", "waiting");
+});
 
 // --- On load ---
 $(document).ready(function () {
