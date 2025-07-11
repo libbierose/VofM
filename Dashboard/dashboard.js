@@ -109,9 +109,9 @@ function renderLeaderboard(entries) {
 			table.append(`
                 <tr>
                     <td>${idx + 4}</td>
-                    <td><img src="${entry.avatar || "placeholder.png"}" class="leaderboard-avatar"></td>
-                    <td>${entry.displayName || entry.user}</td>
-                    <td><span class="points">${entry.points}</span></td>
+                    <td class="rank"><img src="${entry.avatar || "placeholder.png"}" class="leaderboard-avatar"></td>
+                    <td class="username">${entry.displayName || entry.user}</td>
+                    <td class="points"><span class="points">${entry.points}</span></td>
                 </tr>
             `);
 		});
@@ -339,6 +339,9 @@ function populateSettingsModal(settings) {
 function openUserStats(username) {
 	if (!username) return;
 	setStatus("Loading user stats...", "waiting");
+	userStatsCurrent = window.userStatsCurrent || {};
+	userStatsCurrent.user = username; // <-- Set the user context here
+	userStatsCurrent.month = getCurrentMonth();
 	ws.send(
 		JSON.stringify({
 			action: "getuser",
@@ -367,6 +370,28 @@ $("#leaderboardTable tbody").on("click", "td.username", function () {
 	openUserStats(username);
 });
 
+function formatWatchTime(seconds) {
+	if (!seconds || isNaN(seconds)) return "0 min";
+	const mins = Math.floor(seconds / 60);
+	const hours = Math.floor(mins / 60);
+	const days = Math.floor(hours / 24);
+	const months = Math.floor(days / 30);
+	const years = Math.floor(months / 12);
+
+	let remainingMonths = months % 12;
+	let remainingDays = days % 30;
+	let remainingHours = hours % 24;
+	let remainingMins = mins % 60;
+
+	let parts = [];
+	if (years) parts.push(`${years}y`);
+	if (remainingMonths) parts.push(`${remainingMonths}m`);
+	if (remainingDays) parts.push(`${remainingDays}d`);
+	if (remainingHours) parts.push(`${remainingHours}h`);
+	if (remainingMins) parts.push(`${remainingMins}min`);
+	return parts.length ? parts.join(" ") : "0 min";
+}
+
 function renderUserStatsModal(data) {
 	// Defensive: handle no/invalid data
 	if (!data) {
@@ -387,32 +412,32 @@ function renderUserStatsModal(data) {
 		{ label: "Redeem", value: data.AllTimeRedemptions ?? 0 },
 		{ label: "Spent", value: data.AllTimePointsSpent ?? 0 },
 		{ label: "Chats", value: data.AllTimeChatMessages ?? 0 },
-		{ label: "Watch", value: (data.AllTimeWatchSeconds ? Math.round(data.AllTimeWatchSeconds / 60) : 0) + " min" },
+		{ label: "Watch", value: formatWatchTime(data.AllTimeWatchSeconds) },
 	];
 	let allTimeHTML = `
-	  <div class="alltime-section">
-		<div class="alltime-title">All Time</div>
-		<div class="alltime-stats-cards">
-		  ${allTimeStats
-				.map(
-					(stat) => `
-			<div class="alltime-card">
-			  <div class="alltime-label">${stat.label}</div>
-			  <div class="alltime-value">${stat.value}</div>
-			</div>
-		  `
-				)
-				.join("")}
-		</div>
-	  </div>
-	`;
+      <div class="alltime-section">
+        <div class="alltime-title">All Time</div>
+        <div class="alltime-stats-cards">
+          ${allTimeStats
+					.map(
+						(stat) => `
+            <div class="alltime-card">
+              <div class="alltime-label">${stat.label}</div>
+              <div class="alltime-value">${stat.value}</div>
+            </div>
+          `
+					)
+					.join("")}
+        </div>
+      </div>
+    `;
 	document.getElementById("userStatsAllTimeBlock").innerHTML = allTimeHTML;
 
 	// --- Month Dropdown ---
 	let months = typeof allMonths !== "undefined" && Array.isArray(allMonths) && allMonths.length ? allMonths : [getCurrentMonth()];
 	userStatsCurrent = window.userStatsCurrent || {};
-	// Try to keep the same user in context
-	if (!userStatsCurrent.user) userStatsCurrent.user = data.DisplayName || data.UserName || data.user;
+	// Remove this line to prevent overwriting the user context:
+	// if (!userStatsCurrent.user) userStatsCurrent.user = data.DisplayName || data.UserName || data.user;
 
 	let currentMonth = userStatsCurrent.month || getCurrentMonth();
 	let dropdown = document.getElementById("userStatsMonthDropdown");
@@ -438,7 +463,7 @@ function renderUserStatsModal(data) {
 		["Redemptions", stats.Redemptions],
 		["Points Spent", stats.PointsSpent],
 		["Chat Msgs", stats.ChatMessages],
-		["Watch Time", stats.WatchSeconds ? Math.round(stats.WatchSeconds / 60) + " min" : "0"],
+		["Watch Time", formatWatchTime(stats.WatchSeconds)],
 		["Highest Streak", stats.HighestStreak],
 		["Streams Watched", stats.StreamsWatched],
 		["Bits Cheered", stats.BitsCheered],
