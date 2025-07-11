@@ -109,7 +109,7 @@ function renderLeaderboard(entries) {
 				leaderboardDataTable.row.add([
 					idx + 4,
 					`<img src="${entry.avatar || "placeholder.png"}" class="leaderboard-avatar">`,
-					entry.displayName || entry.user,
+					`<span class="username">${entry.displayName || entry.user}</span>`, // <-- wrap in span with class
 					`<span class="points">${entry.points}</span>`,
 				]);
 			});
@@ -201,6 +201,7 @@ function connectWebSocket() {
 		websocketRequest("currentwinner");
 		websocketRequest("alltimewinners");
 		websocketRequest("settings");
+		setLiveUpdateMode(true);
 	};
 
 	ws.onmessage = (evt) => {
@@ -431,6 +432,14 @@ $("#leaderboardTable tbody").on("click", "td.username", function () {
 	let username = $(this).text().trim();
 	openUserStats(username);
 });
+// Place this ONCE after DataTable is initialized:
+$("#leaderboardTable tbody").on("click", "td.username, span.username", function () {
+	// If it's a <span>, get the text directly
+	// If it's a <td>, get the text of the span inside or the td itself
+	let username = $(this).hasClass("username") ? $(this).text().trim() : $(this).find(".username").text().trim();
+	if (!username) username = $(this).text().trim();
+	openUserStats(username);
+});
 
 // --- Format Watch Time Utility ---
 function formatWatchTime(seconds) {
@@ -627,5 +636,4 @@ $("#saveSettings").on("click", function () {
 $(document).ready(function () {
 	console.log("[Init] Document ready, connecting WebSocket and enabling live updates");
 	connectWebSocket();
-	setLiveUpdateMode(true);
 });
