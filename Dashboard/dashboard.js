@@ -372,48 +372,49 @@ function renderUserStatsModal(data) {
 	if (!data) {
 		document.getElementById("userStatsDisplayName").innerText = "Viewer";
 		document.getElementById("userStatsAvatar").src = "placeholder.png";
-		document.getElementById("userStatsAllTimePoints").innerText = "0";
-		document.getElementById("userStatsAllTimeRedemptions").innerText = "0";
-		document.getElementById("userStatsAllTimeSpent").innerText = "0";
-		document.getElementById("userStatsAllTimeChatMsgs").innerText = "0";
-		document.getElementById("userStatsAllTimeWatch").innerText = "0 min";
+		document.getElementById("userStatsAllTimeBlock").innerHTML = "";
 		document.getElementById("userStatsTable").innerHTML = `<tr><td colspan="2" class="text-center text-muted">No data loaded.</td></tr>`;
 		return;
 	}
 
-	// --- Profile and All-Time Stats ---
+	// --- Profile Info ---
+	document.getElementById("userStatsDisplayName").innerText = data.DisplayName || data.UserName || "Viewer";
+	document.getElementById("userStatsAvatar").src = data.ProfileImageUrl || "placeholder.png";
+
+	// --- All-Time Stats Cards ---
 	let allTimeStats = [
 		{ label: "Points", value: data.VofM_Points ?? 0 },
-		{ label: "Redemptions", value: data.AllTimeRedemptions ?? 0 },
-		{ label: "Points Spent", value: data.AllTimePointsSpent ?? 0 },
-		{ label: "Chat Msgs", value: data.AllTimeChatMessages ?? 0 },
-		{ label: "Watch Time", value: (data.AllTimeWatchSeconds ? Math.round(data.AllTimeWatchSeconds / 60) : 0) + " min" },
+		{ label: "Redeem", value: data.AllTimeRedemptions ?? 0 },
+		{ label: "Spent", value: data.AllTimePointsSpent ?? 0 },
+		{ label: "Chats", value: data.AllTimeChatMessages ?? 0 },
+		{ label: "Watch", value: (data.AllTimeWatchSeconds ? Math.round(data.AllTimeWatchSeconds / 60) : 0) + " min" },
 	];
 	let allTimeHTML = `
-  <div class="alltime-section">
-    <div class="alltime-title">All Time</div>
-    <div class="alltime-stats-cards">
-      ${allTimeStats
-			.map(
-				(stat) => `
-        <div class="alltime-card">
-          <div class="alltime-label">${stat.label}</div>
-          <div class="alltime-value">${stat.value}</div>
-        </div>
-      `
-			)
-			.join("")}
-    </div>
-  </div>
-`;
+	  <div class="alltime-section">
+		<div class="alltime-title">All Time</div>
+		<div class="alltime-stats-cards">
+		  ${allTimeStats
+				.map(
+					(stat) => `
+			<div class="alltime-card">
+			  <div class="alltime-label">${stat.label}</div>
+			  <div class="alltime-value">${stat.value}</div>
+			</div>
+		  `
+				)
+				.join("")}
+		</div>
+	  </div>
+	`;
 	document.getElementById("userStatsAllTimeBlock").innerHTML = allTimeHTML;
 
 	// --- Month Dropdown ---
-	// Assume you have all months in a global array called "allMonths" (else getCurrentMonth only)
 	let months = typeof allMonths !== "undefined" && Array.isArray(allMonths) && allMonths.length ? allMonths : [getCurrentMonth()];
+	userStatsCurrent = window.userStatsCurrent || {};
+	// Try to keep the same user in context
+	if (!userStatsCurrent.user) userStatsCurrent.user = data.DisplayName || data.UserName || data.user;
 
-	let currentMonth = typeof userStatsCurrent !== "undefined" && userStatsCurrent.month ? userStatsCurrent.month : getCurrentMonth();
-
+	let currentMonth = userStatsCurrent.month || getCurrentMonth();
 	let dropdown = document.getElementById("userStatsMonthDropdown");
 	dropdown.innerHTML = "";
 	months.forEach((m) => {
@@ -424,17 +425,13 @@ function renderUserStatsModal(data) {
 	});
 	dropdown.value = currentMonth;
 
-	// Prevent event stacking
 	dropdown.onchange = null;
 	dropdown.onchange = function () {
-		// Optionally show loading here
-		userStatsCurrent = userStatsCurrent || {};
 		userStatsCurrent.month = this.value;
-		// Example: use your websocket to fetch new stats
 		ws.send(JSON.stringify({ action: "getuser", user: userStatsCurrent.user, month: userStatsCurrent.month }));
 	};
 
-	// --- Monthly Stats Table (use data as flat object or .MonthlyStats subobject if present) ---
+	// --- Monthly Stats Table ---
 	let stats = data.MonthlyStats || data;
 	const fields = [
 		["Points", stats.Points],
