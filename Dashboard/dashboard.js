@@ -1,3 +1,8 @@
+// ===================
+// VofM Dashboard Main JS
+// ===================
+
+// --- WebSocket Setup ---
 const wsURL = "ws://127.0.0.1:9292/"; // <-- Change if your backend uses another port!
 let ws,
 	leaderboardDataTable = null,
@@ -9,6 +14,7 @@ let ws,
 
 let previousPodium = [null, null, null];
 
+// --- Status Helper ---
 function setStatus(text = "", style = "info") {
 	const s = document.getElementById("status");
 	let display = "";
@@ -16,9 +22,13 @@ function setStatus(text = "", style = "info") {
 		display = `<span class="status-${style}">${text}</span>`;
 	}
 	s.innerHTML = display;
+	console.log(`[Status] ${style}: ${text}`);
 }
 
+// --- Leaderboard Rendering ---
 function renderLeaderboard(entries) {
+	console.log("[Leaderboard] Rendering entries:", entries);
+
 	// Defensive: always handle missing data
 	if (!entries || !Array.isArray(entries)) return;
 
@@ -44,6 +54,7 @@ function renderLeaderboard(entries) {
 			setTimeout(() => {
 				podiumCard.classList.remove("glow-update");
 			}, 1200);
+			console.log(`[Podium] Updated position ${i + 1}:`, user);
 		}
 	});
 	previousPodium = [podium[0], podium[1], podium[2]];
@@ -73,12 +84,14 @@ function renderLeaderboard(entries) {
 							`<span class="points${changed ? " highlight-update" : ""}">${entry.points}</span>`,
 						]);
 					if (changed) {
+						console.log(`[Leaderboard] Points changed for ${userKey}: ${prevPoints} → ${entry.points}`);
 						setTimeout(() => {
 							$(".highlight-update").removeClass("highlight-update");
 						}, 1200);
 					}
 				} else {
 					// Row for user not found (rare, new entry) - add new
+					console.log(`[Leaderboard] New entry for user: ${userKey}`);
 					leaderboardDataTable.row.add([
 						idx + 4,
 						`<img src="${entry.avatar || "placeholder.png"}" class="leaderboard-avatar">`,
@@ -90,6 +103,7 @@ function renderLeaderboard(entries) {
 			leaderboardDataTable.draw(false);
 		} else {
 			// Manual/first load: full clear, no highlight
+			console.log("[Leaderboard] Full table redraw");
 			leaderboardDataTable.clear();
 			tableEntries.forEach((entry, idx) => {
 				leaderboardDataTable.row.add([
@@ -103,6 +117,7 @@ function renderLeaderboard(entries) {
 		}
 	} else {
 		// Initial table setup
+		console.log("[Leaderboard] Initial DataTable setup");
 		let table = $("#leaderboardTable tbody");
 		table.empty();
 		tableEntries.forEach((entry, idx) => {
@@ -137,22 +152,15 @@ function renderLeaderboard(entries) {
 		let key = (e.user || e.displayName || "").toLowerCase();
 		currentEntriesMap[key] = e.points;
 	});
+	console.log("[Leaderboard] Updated currentEntriesMap:", currentEntriesMap);
 }
-
-document.getElementById("liveUpdatesSwitch").addEventListener("change", function () {
-	liveUpdatesEnabled = this.checked;
-	if (liveUpdatesEnabled) {
-		setStatus("Live updates enabled", "success");
-	} else {
-		setStatus("Live updates paused", "info");
-	}
-});
 
 // --- Live Updates Toggle ---
 $("#liveUpdatesSwitch").on("change", function () {
 	liveUpdatesEnabled = this.checked;
 	liveUpdatesFirst = true;
 	setLiveUpdateMode(liveUpdatesEnabled);
+	console.log(`[LiveUpdates] Toggled: ${liveUpdatesEnabled}`);
 	if (liveUpdatesEnabled) {
 		setStatus("Live updates enabled", "success");
 	} else {
@@ -160,12 +168,12 @@ $("#liveUpdatesSwitch").on("change", function () {
 	}
 });
 
+// --- Set Live Update Mode (enables/disables controls) ---
 function setLiveUpdateMode(enabled) {
 	const monthDropdown = document.getElementById("monthDropdown");
 	const refreshBtn = document.getElementById("refreshBtn");
 
 	if (enabled) {
-		// Set to current month and disable both controls
 		selectedMonth = getCurrentMonth();
 		if (monthDropdown) {
 			monthDropdown.value = selectedMonth;
@@ -174,21 +182,21 @@ function setLiveUpdateMode(enabled) {
 		if (refreshBtn) {
 			refreshBtn.disabled = true;
 		}
-		// Optionally, refetch leaderboard to sync
+		console.log("[LiveUpdates] Syncing leaderboard for current month");
 		ws.send(JSON.stringify({ action: "getleaderboard", month: selectedMonth }));
 	} else {
-		// Enable controls
 		if (monthDropdown) monthDropdown.disabled = false;
 		if (refreshBtn) refreshBtn.disabled = false;
 	}
 }
 
-// --- Websocket connect and handlers ---
+// --- WebSocket Connect and Handlers ---
 function connectWebSocket() {
+	console.log("[WebSocket] Connecting to", wsURL);
 	ws = new WebSocket(wsURL);
 
 	ws.onopen = () => {
-		// Initial load
+		console.log("[WebSocket] Connected");
 		ws.send(JSON.stringify({ action: "getmonths" }));
 		websocketRequest("currentwinner");
 		websocketRequest("alltimewinners");
@@ -200,8 +208,11 @@ function connectWebSocket() {
 		try {
 			msg = JSON.parse(evt.data);
 		} catch {
+			console.warn("[WebSocket] Failed to parse message:", evt.data);
 			return;
 		}
+		console.log("[WebSocket] Received:", msg);
+
 		if (msg.type === "months") {
 			allMonths = msg.months || [];
 			selectedMonth = allMonths[0] || getCurrentMonth();
@@ -225,8 +236,7 @@ function connectWebSocket() {
 			setStatus("Received All Time Winners", "success");
 		}
 		if (msg.type === "userstats") {
-			renderUserStatsModal(msg.data); // Your existing function
-			// Show the modal if not already shown
+			renderUserStatsModal(msg.data);
 			$("#userStatsModal").modal("show");
 			setStatus("Received User Stats", "success");
 		}
@@ -238,17 +248,14 @@ function connectWebSocket() {
 			populateSettingsModal(msg);
 		}
 	};
-	ws.onclose = () => setTimeout(connectWebSocket, 2500);
+	ws.onclose = () => {
+		console.warn("[WebSocket] Disconnected. Reconnecting in 2.5s...");
+		setTimeout(connectWebSocket, 2500);
+	};
 }
 
-function requestSettings() {
-	setStatus("Loading settings...", "waiting");
-	ws.send(JSON.stringify({ action: "getsettings" }));
-	ws.send(JSON.stringify({ action: "getcurrentwinner" }));
-	ws.send(JSON.stringify({ action: "getalltimewinners" }));
-}
-
-websocketRequest = (action) => {
+// --- WebSocket Request Helper ---
+function websocketRequest(action) {
 	switch (action) {
 		case "currentwinner":
 			setStatus("Requesting Current Winner", "waiting");
@@ -257,21 +264,28 @@ websocketRequest = (action) => {
 		case "alltimewinners":
 			setStatus("Requesting All-Time Winner", "waiting");
 			ws.send(JSON.stringify({ action: "getalltimewinners" }));
+			break;
 		case "settings":
 			setStatus("Requesting Settings", "waiting");
 			ws.send(JSON.stringify({ action: "getsettings" }));
+			break;
 		default:
+			console.warn("[WebSocket] Unknown request action:", action);
 			break;
 	}
-};
+}
 
+// --- Render Current Winner Card ---
 function renderCurrentWinner(user) {
+	console.log("[CurrentWinner] Rendering:", user);
 	document.getElementById("currentWinnerAvatar").src = user.avatar || "https://placehold.co/64x64";
 	document.getElementById("currentWinnerName").innerText = user.displayName || user.user || "None";
 	document.getElementById("currentWinnerPoints").innerText = (user.points || 0) + " points";
 }
 
+// --- Render All-Time Winners Sidebar ---
 function renderAllTimeWinners(allTime) {
+	console.log("[AllTimeWinners] Rendering:", allTime);
 	let html = "";
 	const monthKeys = Object.keys(allTime || {}).sort((a, b) => b.localeCompare(a));
 	if (monthKeys.length === 0) {
@@ -298,6 +312,7 @@ function renderAllTimeWinners(allTime) {
 	document.getElementById("allTimeWinners").innerHTML = html;
 }
 
+// --- Utility: Get Current Month as YYYY-MM ---
 function getCurrentMonth() {
 	let d = new Date(),
 		m = (d.getMonth() + 1).toString().padStart(2, "0"),
@@ -305,6 +320,7 @@ function getCurrentMonth() {
 	return `${y}-${m}`;
 }
 
+// --- Fill Month Dropdown ---
 function fillMonthDropdown(months) {
 	let sel = document.getElementById("monthDropdown");
 	sel.innerHTML = "";
@@ -315,13 +331,15 @@ function fillMonthDropdown(months) {
 		sel.appendChild(opt);
 	});
 	sel.value = selectedMonth || getCurrentMonth();
+	console.log("[Dropdown] Months filled:", months);
 }
 
-// --- Refresh button (manual, disables live) ---
+// --- Refresh Button (manual, disables live) ---
 $("#refreshLeaderboard").on("click", function () {
 	liveUpdatesEnabled = false;
 	$("#liveToggle").prop("checked", false);
 	setStatus("Manual refresh...", "waiting");
+	console.log("[Refresh] Manual refresh triggered");
 	ws.send(
 		JSON.stringify({
 			action: "getleaderboard",
@@ -330,18 +348,23 @@ $("#refreshLeaderboard").on("click", function () {
 	);
 });
 
+// --- Month Dropdown Change ---
 document.getElementById("monthDropdown").onchange = function () {
 	selectedMonth = this.value;
 	setStatus("Fetching leaderboard...", "waiting");
+	console.log("[Dropdown] Month changed:", selectedMonth);
 	ws.send(JSON.stringify({ action: "getleaderboard", month: selectedMonth }));
 };
 
+// --- Settings Modal Show: Fetch Settings ---
 $("#settingsModal").on("show.bs.modal", function () {
+	console.log("[Settings] Modal opened, requesting settings");
 	ws.send(JSON.stringify({ action: "getsettings" }));
 });
 
-// Populate modal fields from current settings
+// --- Populate Settings Modal Fields ---
 function populateSettingsModal(settings) {
+	console.log("[Settings] Populating modal with:", settings);
 	$("#inputResetDay").val(settings.resetDay || 1);
 	$("#inputRedemptionMode").val(settings.redemptionPointMode || "perRedemption");
 	$("#inputCurrentWinner").val(settings.currentWinner || "");
@@ -377,10 +400,11 @@ function populateSettingsModal(settings) {
 	});
 }
 
-// Helper: Open stats modal for a given username
+// --- Open User Stats Modal for a Given Username ---
 function openUserStats(username) {
 	if (!username) return;
 	setStatus("Loading user stats...", "waiting");
+	console.log("[UserStats] Requesting stats for:", username);
 	userStatsCurrent = window.userStatsCurrent || {};
 	userStatsCurrent.user = username; // <-- Set the user context here
 	userStatsCurrent.month = getCurrentMonth();
@@ -394,24 +418,21 @@ function openUserStats(username) {
 	// Modal will show after renderUserStatsModal is called from ws.onmessage
 }
 
-// 1. Current Winner click
+// --- Click Handlers for User Stats Modal ---
 $("#currentWinnerCard, #currentWinnerName, #currentWinnerAvatar").on("click", function () {
 	let username = $("#currentWinnerName").text().trim();
 	openUserStats(username);
 });
-
-// 2. Podium cards click
 $(".podium-card").on("click", function () {
 	let username = $(this).find(".podium-username").text().trim();
 	openUserStats(username);
 });
-
-// 3. Leaderboard table usernames
 $("#leaderboardTable tbody").on("click", "td.username", function () {
 	let username = $(this).text().trim();
 	openUserStats(username);
 });
 
+// --- Format Watch Time Utility ---
 function formatWatchTime(seconds) {
 	if (!seconds || isNaN(seconds)) return "0 min";
 	const mins = Math.floor(seconds / 60);
@@ -434,7 +455,10 @@ function formatWatchTime(seconds) {
 	return parts.length ? parts.join(" ") : "0 min";
 }
 
+// --- Render User Stats Modal ---
 function renderUserStatsModal(data) {
+	console.log("[UserStats] Rendering modal for:", data);
+
 	// Defensive: handle no/invalid data
 	if (!data) {
 		document.getElementById("userStatsDisplayName").innerText = "Viewer";
@@ -478,9 +502,6 @@ function renderUserStatsModal(data) {
 	// --- Month Dropdown ---
 	let months = typeof allMonths !== "undefined" && Array.isArray(allMonths) && allMonths.length ? allMonths : [getCurrentMonth()];
 	userStatsCurrent = window.userStatsCurrent || {};
-	// Remove this line to prevent overwriting the user context:
-	// if (!userStatsCurrent.user) userStatsCurrent.user = data.DisplayName || data.UserName || data.user;
-
 	let currentMonth = userStatsCurrent.month || getCurrentMonth();
 	let dropdown = document.getElementById("userStatsMonthDropdown");
 	dropdown.innerHTML = "";
@@ -495,6 +516,7 @@ function renderUserStatsModal(data) {
 	dropdown.onchange = null;
 	dropdown.onchange = function () {
 		userStatsCurrent.month = this.value;
+		console.log("[UserStats] Month changed:", this.value);
 		ws.send(JSON.stringify({ action: "getuser", user: userStatsCurrent.user, month: userStatsCurrent.month }));
 	};
 
@@ -538,7 +560,9 @@ function renderUserStatsModal(data) {
 	window.userStatsModalInstance.show();
 }
 
+// --- Save Settings Button ---
 $("#saveSettings").on("click", function () {
+	console.log("[Settings] Save button clicked");
 	const resetDay = parseInt($("#inputResetDay").val(), 10) || 1;
 	const redemptionPointMode = $("#inputRedemptionMode").val();
 	const currentWinner = $("#inputCurrentWinner").val();
@@ -594,12 +618,14 @@ $("#saveSettings").on("click", function () {
 		streakTypes,
 	};
 
+	console.log("[Settings] Sending payload:", payload);
 	ws.send(JSON.stringify(payload));
 	setStatus("Saving settings...", "waiting");
 });
 
 // --- On load ---
 $(document).ready(function () {
+	console.log("[Init] Document ready, connecting WebSocket and enabling live updates");
 	connectWebSocket();
 	setLiveUpdateMode(true);
 });
