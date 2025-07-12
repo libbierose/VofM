@@ -20,6 +20,8 @@ jobs:
 
          - name: Bump patch version and create new tag
            id: bump_tag
+           env:
+              GH_PAT: ${{ secrets.GH_PAT }}
            run: |
               old_tag=$latest_tag
               base=${old_tag#v}
@@ -32,7 +34,7 @@ jobs:
               git config --global user.name "github-actions[bot]"
               git tag $new_tag
               git config --global --unset credential.helper || true
-              git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/libbierose/VofM.git
+              git remote set-url origin https://x-access-token:$GH_PAT@github.com/libbierose/VofM.git
               git push origin $new_tag
               echo "new_tag=$new_tag" >> $GITHUB_ENV
 
