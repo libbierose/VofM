@@ -22,13 +22,9 @@ jobs:
            run: |
               npm install -g eslint stylelint jest
 
-         - name: Install tidy (HTML validator)
+         - name: Install tidy (HTML validator) and Mono (C# compiler)
            run: |
-              sudo apt-get update && sudo apt-get install -y tidy
-
-         - name: Install Mono (C# compiler)
-           run: |
-              sudo apt-get update && sudo apt-get install -y mono-complete
+              sudo apt-get update && sudo apt-get install -y tidy mono-complete
 
          - name: List files in repository
            run: ls -l
@@ -105,7 +101,7 @@ jobs:
          - name: Lint CSS (Dashboard)
            run: |
               if command -v npx >/dev/null 2>&1; then
-                npx stylelint Dashboard/dashhboard.css || echo "⚠️ CSS lint errors or stylelint not configured"
+                npx stylelint Dashboard/dashboard.css || echo "⚠️ CSS lint errors or stylelint not configured"
               else
                 echo "⚠️ npx not available, skipping CSS lint"
               fi
