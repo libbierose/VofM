@@ -31,7 +31,9 @@ jobs:
               git config --global user.email "github-actions[bot]@users.noreply.github.com"
               git config --global user.name "github-actions[bot]"
               git tag $new_tag
-              git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/libbierose/VofM.git $new_tag
+              git config --global --unset credential.helper || true
+              git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/libbierose86/VofM.git
+              git push origin $new_tag
               echo "new_tag=$new_tag" >> $GITHUB_ENV
 
          - name: Set up zip
