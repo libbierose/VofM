@@ -32,6 +32,13 @@ jobs:
               new_tag="v${major}.${minor}.${new_patch}"
               git config --global user.email "github-actions[bot]@users.noreply.github.com"
               git config --global user.name "github-actions[bot]"
+              # Delete tag locally and remotely if it exists
+              if git rev-parse "$new_tag" >/dev/null 2>&1; then
+                git tag -d "$new_tag"
+              fi
+              if git ls-remote --tags origin | grep -q "refs/tags/$new_tag"; then
+                git push origin ":refs/tags/$new_tag"
+              fi
               git tag $new_tag
               git config --global --unset credential.helper || true
               git remote set-url origin https://x-access-token:$GH_PAT@github.com/libbierose/VofM.git
