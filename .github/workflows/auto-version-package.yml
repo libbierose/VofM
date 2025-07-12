@@ -21,7 +21,7 @@ jobs:
          - name: Bump patch version and create new tag
            id: bump_tag
            run: |
-              old_tag=${{ env.latest_tag }}
+              old_tag=$latest_tag
               base=${old_tag#v}
               major=$(echo $base | cut -d. -f1)
               minor=$(echo $base | cut -d. -f2)
