@@ -15,7 +15,7 @@ let ws,
 let previousPodium = [null, null, null];
 
 // --- Status Helper ---
-function setStatus(text = "", style = "info") {
+setStatus = (text = "", style = "info") => {
 	const s = document.getElementById("status");
 	let display = "";
 	if (text) {
@@ -23,31 +23,73 @@ function setStatus(text = "", style = "info") {
 	}
 	s.innerHTML = display;
 	console.log(`[Status] ${style}: ${text}`);
-}
+};
+
+let isLeaderboardUpdating = false;
+let leaderboardUpdateCache = null;
 
 // --- Leaderboard Rendering ---
-function renderLeaderboard(entries) {
+renderLeaderboard = (entries) => {
 	console.log("[Leaderboard] Rendering entries:", entries);
-
-	// Defensive: always handle missing data
 	if (!entries || !Array.isArray(entries)) return;
 
-	// Split top 3 for podium, rest for table
 	const podium = [entries[0], entries[1], entries[2]];
 	const tableEntries = entries.slice(3);
 
-	// --- PODIUM: update with glow if changed ---
+	renderPodium(podium, previousPodium);
+	previousPodium = [podium[0], podium[1], podium[2]];
+
+	if (leaderboardDataTable) {
+		if (isLeaderboardUpdating) {
+			leaderboardUpdateCache = entries;
+			setStatus("Updating leaderboard... New data available", "waiting");
+			console.log("[Leaderboard] Already updating, caching new data for later");
+			return;
+		}
+		isLeaderboardUpdating = true;
+		if (liveUpdatesEnabled && !liveUpdatesFirst) {
+			const podiumUsernames = podium.filter((u) => u).map((u) => (u.displayName || u.user || "").toLowerCase());
+			renderTable(tableEntries, podiumUsernames);
+		} else {
+			renderTable(tableEntries);
+			liveUpdatesFirst = false;
+		}
+	} else {
+		renderTable(tableEntries);
+	}
+
+	// Update the map of points for future highlighting
+	let newEntriesMap = {};
+	entries.slice(3).forEach((e) => {
+		let key = (e.user || e.displayName || "").toLowerCase();
+		newEntriesMap[key] = e.points;
+	});
+	currentEntriesMap = newEntriesMap;
+	console.log("[Leaderboard] Updated currentEntriesMap:", currentEntriesMap);
+
+	isLeaderboardUpdating = false;
+	setStatus("Leaderboard updated", "success");
+	console.log("[Leaderboard] Render complete");
+	if (leaderboardUpdateCache) {
+		console.log("[Leaderboard] Processing cached entries after update");
+		isLeaderboardUpdating = true;
+		setStatus("Processing cached leaderboard data...", "waiting");
+		const cachedEntries = leaderboardUpdateCache;
+		leaderboardUpdateCache = null;
+		renderLeaderboard(cachedEntries);
+	}
+};
+
+renderPodium = (podium, previousPodium) => {
 	podium.forEach((user, i) => {
 		let key = user ? (user.displayName || user.user || "") + (user.points ?? "") : "";
 		let oldKey = previousPodium[i] ? (previousPodium[i].displayName || previousPodium[i].user || "") + (previousPodium[i].points ?? "") : "";
 		let elAvatar = document.getElementById(`podiumAvatar${i + 1}`);
 		let elName = document.getElementById(`podiumName${i + 1}`);
 		let elPoints = document.getElementById(`podiumPoints${i + 1}`);
-
 		elAvatar.src = user?.avatar || "placeholder.png";
 		elName.textContent = user?.displayName || user?.user || ["Second", "First", "Third"][i];
 		elPoints.textContent = (user?.points != null ? user.points : "0") + " pts";
-
 		let podiumCard = elAvatar.closest(".podium-card");
 		if (key !== oldKey && podiumCard && liveUpdatesEnabled) {
 			podiumCard.classList.add("glow-update");
@@ -57,78 +99,66 @@ function renderLeaderboard(entries) {
 			console.log(`[Podium] Updated position ${i + 1}:`, user);
 		}
 	});
-	previousPodium = [podium[0], podium[1], podium[2]];
+};
 
-	// --- TABLE: live update vs initial/manual load ---
+renderTable = (tableEntries, podiumUsernames = []) => {
 	if (leaderboardDataTable) {
-		if (liveUpdatesEnabled && !liveUpdatesFirst) {
-			liveUpdatesFirst = false;
-			// Live update (only update rows that change, highlight them)
-			tableEntries.forEach((entry, idx) => {
-				let userKey = entry.user || entry.displayName || "";
-				let prevPoints = currentEntriesMap[userKey.toLowerCase()];
-				let changed = prevPoints != null && prevPoints !== entry.points;
-
-				// Find row for this user
-				let rowIdx = leaderboardDataTable.rows((i, data) => {
-					return (data[2] || "").toLowerCase() === userKey.toLowerCase();
-				});
-
-				if (rowIdx.count()) {
-					leaderboardDataTable
-						.row(rowIdx.indexes()[0])
-						.data([
-							idx + 4,
-							`<img src="${entry.avatar || "placeholder.png"}" class="leaderboard-avatar">`,
-							entry.displayName || entry.user,
-							`<span class="points${changed ? " highlight-update" : ""}">${entry.points}</span>`,
-						]);
-					if (changed) {
-						console.log(`[Leaderboard] Points changed for ${userKey}: ${prevPoints} → ${entry.points}`);
-						setTimeout(() => {
-							$(".highlight-update").removeClass("highlight-update");
-						}, 1200);
-					}
-				} else {
-					// Row for user not found (rare, new entry) - add new
-					console.log(`[Leaderboard] New entry for user: ${userKey}`);
-					leaderboardDataTable.row.add([
-						idx + 4,
-						`<img src="${entry.avatar || "placeholder.png"}" class="leaderboard-avatar">`,
-						entry.displayName || entry.user,
-						`<span class="points">${entry.points}</span>`,
-					]);
+		if (podiumUsernames.length) {
+			$("#leaderboardTable tbody tr").each(function () {
+				const $tds = $(this).find("td");
+				let cellText = $("<div>").html($tds.eq(2).html()).text().trim().toLowerCase();
+				if (podiumUsernames.includes(cellText)) {
+					leaderboardDataTable.row($(this)).remove();
 				}
 			});
 			leaderboardDataTable.draw(false);
-		} else {
-			// Manual/first load: full clear, no highlight
-			console.log("[Leaderboard] Full table redraw");
-			leaderboardDataTable.clear();
-			tableEntries.forEach((entry, idx) => {
+		}
+		let changedUsers = [];
+		tableEntries.forEach((entry, idx) => {
+			let userKey = entry.user || entry.displayName || "";
+			let prevPoints = currentEntriesMap[userKey.toLowerCase()];
+			let changed = prevPoints != null && prevPoints !== entry.points;
+			let rowIdx = leaderboardDataTable.rows((i, data) => {
+				let cell = data[2] || "";
+				let cellText = $("<div>").html(cell).text();
+				return cellText.toLowerCase() === userKey.toLowerCase();
+			});
+			if (rowIdx.count()) {
+				leaderboardDataTable
+					.row(rowIdx.indexes()[0])
+					.data([
+						idx + 4,
+						`<img src="${entry.avatar || "placeholder.png"}" class="leaderboard-avatar">`,
+						`<span class="username">${entry.displayName || entry.user}</span>`,
+						`<span class="points">${entry.points}</span>`,
+					]);
+				if (changed) {
+					changedUsers.push(userKey.toLowerCase());
+					console.log(`[Leaderboard] Points changed for ${userKey}: ${prevPoints} → ${entry.points}`);
+				}
+			} else {
 				leaderboardDataTable.row.add([
 					idx + 4,
 					`<img src="${entry.avatar || "placeholder.png"}" class="leaderboard-avatar">`,
-					`<span class="username">${entry.displayName || entry.user}</span>`, // <-- wrap in span with class
+					`<span class="username">${entry.displayName || entry.user}</span>`,
 					`<span class="points">${entry.points}</span>`,
 				]);
-			});
-			leaderboardDataTable.draw(false);
-		}
+			}
+		});
+		leaderboardDataTable.draw(false);
+		highlightChangedRows(changedUsers);
 	} else {
-		// Initial table setup
-		console.log("[Leaderboard] Initial DataTable setup");
 		let table = $("#leaderboardTable tbody");
 		table.empty();
 		tableEntries.forEach((entry, idx) => {
 			table.append(`
-                <tr>
-                    <td>${idx + 4}</td>
-                    <td class="rank"><img src="${entry.avatar || "placeholder.png"}" class="leaderboard-avatar"></td>
-                    <td class="username">${entry.displayName || entry.user}</td>
-                    <td class="points"><span class="points">${entry.points}</span></td>
-                </tr>
-            `);
+				<tr>
+					<td>${idx + 4}</td>
+					<td class="rank"><img src="${entry.avatar || "placeholder.png"}" class="leaderboard-avatar"></td>
+					<td class="username">${entry.displayName || entry.user}</td>
+					<td class="points"><span class="points">${entry.points}</span></td>
+				</tr>
+			`);
 		});
 		leaderboardDataTable = $("#leaderboardTable").DataTable({
 			pageLength: 7,
@@ -140,20 +170,26 @@ function renderLeaderboard(entries) {
 			columnDefs: [{ orderable: false, targets: [1] }],
 			dom: "rtip",
 		});
-
 		$("#searchInput").on("keyup search input paste cut", function () {
 			leaderboardDataTable.search(this.value).draw();
 		});
 	}
+};
 
-	// Update the map of points for future highlighting
-	currentEntriesMap = {};
-	tableEntries.forEach((e) => {
-		let key = (e.user || e.displayName || "").toLowerCase();
-		currentEntriesMap[key] = e.points;
+highlightChangedRows = (changedUsers) => {
+	changedUsers.forEach((userKey) => {
+		$("#leaderboardTable tbody tr").each(function () {
+			const $tds = $(this).find("td");
+			let cellText = $("<div>").html($tds.eq(2).html()).text();
+			if (cellText.trim().toLowerCase() === userKey) {
+				$tds.eq(3).find(".points").addClass("highlight-update");
+			}
+		});
 	});
-	console.log("[Leaderboard] Updated currentEntriesMap:", currentEntriesMap);
-}
+	setTimeout(function () {
+		$(".highlight-update").removeClass("highlight-update");
+	}, 1200);
+};
 
 // --- Live Updates Toggle ---
 $("#liveUpdatesSwitch").on("change", function () {
@@ -169,7 +205,7 @@ $("#liveUpdatesSwitch").on("change", function () {
 });
 
 // --- Set Live Update Mode (enables/disables controls) ---
-function setLiveUpdateMode(enabled) {
+setLiveUpdateMode = (enabled) => {
 	const monthDropdown = document.getElementById("monthDropdown");
 	const refreshBtn = document.getElementById("refreshBtn");
 
@@ -188,10 +224,10 @@ function setLiveUpdateMode(enabled) {
 		if (monthDropdown) monthDropdown.disabled = false;
 		if (refreshBtn) refreshBtn.disabled = false;
 	}
-}
+};
 
 // --- WebSocket Connect and Handlers ---
-function connectWebSocket() {
+connectWebSocket = () => {
 	console.log("[WebSocket] Connecting to", wsURL);
 	ws = new WebSocket(wsURL);
 
@@ -214,49 +250,57 @@ function connectWebSocket() {
 		}
 		console.log("[WebSocket] Received:", msg);
 
-		if (msg.type === "months") {
-			allMonths = msg.months || [];
-			selectedMonth = allMonths[0] || getCurrentMonth();
-			fillMonthDropdown(allMonths);
-			ws.send(JSON.stringify({ action: "getleaderboard", month: selectedMonth }));
-		}
-		if (msg.type === "leaderboard") {
-			renderLeaderboard(msg.entries || []);
-			setStatus("Leaderboard Updated", "success");
-		}
-		if (msg.type === "liveleaderboard" && liveUpdatesEnabled) {
-			renderLeaderboard(msg.entries || []);
-			setStatus("Leaderboard live update", "success");
-		}
-		if (msg.type === "currentwinner") {
-			renderCurrentWinner(msg);
-			setStatus("Received Current Winner", "success");
-		}
-		if (msg.type === "alltimewinners") {
-			renderAllTimeWinners(msg.allTimeWinners || {});
-			setStatus("Received All Time Winners", "success");
-		}
-		if (msg.type === "userstats") {
-			renderUserStatsModal(msg.data);
-			$("#userStatsModal").modal("show");
-			setStatus("Received User Stats", "success");
-		}
-		if (msg.type === "settings-saved") {
-			setStatus("Settings saved!", "success");
-			$("#settingsModal").modal("hide");
-		}
-		if (msg.type === "settings") {
-			populateSettingsModal(msg);
+		switch (msg.type) {
+			case "months":
+				allMonths = msg.months || [];
+				selectedMonth = allMonths[0] || getCurrentMonth();
+				fillMonthDropdown(allMonths);
+				ws.send(JSON.stringify({ action: "getleaderboard", month: selectedMonth }));
+				break;
+			case "leaderboard":
+				renderLeaderboard(msg.entries || []);
+				setStatus("Leaderboard Updated", "success");
+				break;
+			case "liveleaderboard":
+				if (liveUpdatesEnabled) {
+					console.log("[LiveUpdates] Syncing leaderboard for current month");
+					renderLeaderboard(msg.entries || []);
+					setStatus("Leaderboard live update", "success");
+				}
+				break;
+			case "currentwinner":
+				renderCurrentWinner(msg);
+				setStatus("Received Current Winner", "success");
+				break;
+			case "alltimewinners":
+				renderAllTimeWinners(msg.allTimeWinners || {});
+				setStatus("Received All Time Winners", "success");
+				break;
+			case "userstats":
+				renderUserStatsModal(msg.data);
+				$("#userStatsModal").modal("show");
+				setStatus("Received User Stats", "success");
+				break;
+			case "settings-saved":
+				setStatus("Settings saved!", "success");
+				$("#settingsModal").modal("hide");
+				break;
+			case "settings":
+				populateSettingsModal(msg);
+				break;
+			default:
+				console.warn("[WebSocket] Unknown message type:", msg.type);
+				break;
 		}
 	};
 	ws.onclose = () => {
 		console.warn("[WebSocket] Disconnected. Reconnecting in 2.5s...");
 		setTimeout(connectWebSocket, 2500);
 	};
-}
+};
 
 // --- WebSocket Request Helper ---
-function websocketRequest(action) {
+websocketRequest = (action) => {
 	switch (action) {
 		case "currentwinner":
 			setStatus("Requesting Current Winner", "waiting");
@@ -274,18 +318,18 @@ function websocketRequest(action) {
 			console.warn("[WebSocket] Unknown request action:", action);
 			break;
 	}
-}
+};
 
 // --- Render Current Winner Card ---
-function renderCurrentWinner(user) {
+renderCurrentWinner = (user) => {
 	console.log("[CurrentWinner] Rendering:", user);
 	document.getElementById("currentWinnerAvatar").src = user.avatar || "https://placehold.co/64x64";
 	document.getElementById("currentWinnerName").innerText = user.displayName || user.user || "None";
 	document.getElementById("currentWinnerPoints").innerText = (user.points || 0) + " points";
-}
+};
 
 // --- Render All-Time Winners Sidebar ---
-function renderAllTimeWinners(allTime) {
+renderAllTimeWinners = (allTime) => {
 	console.log("[AllTimeWinners] Rendering:", allTime);
 	let html = "";
 	const monthKeys = Object.keys(allTime || {}).sort((a, b) => b.localeCompare(a));
@@ -298,31 +342,31 @@ function renderAllTimeWinners(allTime) {
 			(allTime[month] || []).forEach((w, idx) => {
 				const medals = ["<span class='at-medal gold'>🥇</span>", "<span class='at-medal silver'>🥈</span>", "<span class='at-medal bronze'>🥉</span>"];
 				html += `
-                  <div class="alltime-winner-row d-flex align-items-center mb-2">
-                    ${medals[idx] || ""}
-                    <div class="alltime-winner-info ms-2">
-                      <div class="alltime-winner-name fw-semibold">${w.DisplayName || w.UserName || w.user || "?"}</div>
-                      <div class="alltime-winner-points text-secondary">${w.Points || w.points || "0"} pts</div>
-                    </div>
-                  </div>
-                `;
+				  <div class="alltime-winner-row d-flex align-items-center mb-2">
+					${medals[idx] || ""}
+					<div class="alltime-winner-info ms-2">
+					  <div class="alltime-winner-name fw-semibold">${w.DisplayName || w.UserName || w.user || "?"}</div>
+					  <div class="alltime-winner-points text-secondary">${w.Points || w.points || "0"} pts</div>
+					</div>
+				  </div>
+				`;
 			});
 			html += `</div>`;
 		});
 	}
 	document.getElementById("allTimeWinners").innerHTML = html;
-}
+};
 
 // --- Utility: Get Current Month as YYYY-MM ---
-function getCurrentMonth() {
+getCurrentMonth = () => {
 	let d = new Date(),
 		m = (d.getMonth() + 1).toString().padStart(2, "0"),
 		y = d.getFullYear();
 	return `${y}-${m}`;
-}
+};
 
 // --- Fill Month Dropdown ---
-function fillMonthDropdown(months) {
+fillMonthDropdown = (months) => {
 	let sel = document.getElementById("monthDropdown");
 	sel.innerHTML = "";
 	months.forEach((m) => {
@@ -333,7 +377,7 @@ function fillMonthDropdown(months) {
 	});
 	sel.value = selectedMonth || getCurrentMonth();
 	console.log("[Dropdown] Months filled:", months);
-}
+};
 
 // --- Refresh Button (manual, disables live) ---
 $("#refreshLeaderboard").on("click", function () {
@@ -350,7 +394,7 @@ $("#refreshLeaderboard").on("click", function () {
 });
 
 // --- Month Dropdown Change ---
-document.getElementById("monthDropdown").onchange = function () {
+document.getElementById("monthDropdown").onchange = () => {
 	selectedMonth = this.value;
 	setStatus("Fetching leaderboard...", "waiting");
 	console.log("[Dropdown] Month changed:", selectedMonth);
@@ -364,7 +408,7 @@ $("#settingsModal").on("show.bs.modal", function () {
 });
 
 // --- Populate Settings Modal Fields ---
-function populateSettingsModal(settings) {
+populateSettingsModal = (settings) => {
 	console.log("[Settings] Populating modal with:", settings);
 	$("#inputResetDay").val(settings.resetDay || 1);
 	$("#inputRedemptionMode").val(settings.redemptionPointMode || "perRedemption");
@@ -376,15 +420,15 @@ function populateSettingsModal(settings) {
 	$basePointsList.empty();
 	Object.entries(basePoints).forEach(([key, value]) => {
 		$basePointsList.append(`
-        <div class="row align-items-center mb-2">
-            <div class="col-7 text-start">
-                <label class="form-label mb-0">${key}</label>
-            </div>
-            <div class="col-5 text-end">
-                <input type="number" class="form-control form-control-sm base-point-input vofm-input" data-key="${key}" value="${value}" step="0.01" min="0" />
-            </div>
-        </div>
-    `);
+		<div class="row align-items-center mb-2">
+			<div class="col-7 text-start">
+				<label class="form-label mb-0">${key}</label>
+			</div>
+			<div class="col-5 text-end">
+				<input type="number" class="form-control form-control-sm base-point-input vofm-input" data-key="${key}" value="${value}" step="0.01" min="0" />
+			</div>
+		</div>
+	`);
 	});
 
 	// Streak Types
@@ -393,16 +437,16 @@ function populateSettingsModal(settings) {
 	$streakTypesList.empty();
 	Object.entries(streakTypes).forEach(([key, value]) => {
 		$streakTypesList.append(`
-        <div class="form-check form-switch mb-2 d-flex align-items-center">
-            <input type="checkbox" class="form-check-input streak-type-input me-2" data-key="${key}" id="streakSwitch_${key}" ${value ? "checked" : ""} />
-            <label class="form-check-label ms-1" for="streakSwitch_${key}">${key}</label>
-        </div>
-    `);
+		<div class="form-check form-switch mb-2 d-flex align-items-center">
+			<input type="checkbox" class="form-check-input streak-type-input me-2" data-key="${key}" id="streakSwitch_${key}" ${value ? "checked" : ""} />
+			<label class="form-check-label ms-1" for="streakSwitch_${key}">${key}</label>
+		</div>
+	`);
 	});
-}
+};
 
 // --- Open User Stats Modal for a Given Username ---
-function openUserStats(username) {
+openUserStats = (username) => {
 	if (!username) return;
 	setStatus("Loading user stats...", "waiting");
 	console.log("[UserStats] Requesting stats for:", username);
@@ -417,7 +461,7 @@ function openUserStats(username) {
 		})
 	);
 	// Modal will show after renderUserStatsModal is called from ws.onmessage
-}
+};
 
 // --- Click Handlers for User Stats Modal ---
 $("#currentWinnerCard, #currentWinnerName, #currentWinnerAvatar").on("click", function () {
@@ -442,7 +486,7 @@ $("#leaderboardTable tbody").on("click", "td.username, span.username", function 
 });
 
 // --- Format Watch Time Utility ---
-function formatWatchTime(seconds) {
+formatWatchTime = (seconds) => {
 	if (!seconds || isNaN(seconds)) return "0 min";
 	const mins = Math.floor(seconds / 60);
 	const hours = Math.floor(mins / 60);
@@ -462,10 +506,10 @@ function formatWatchTime(seconds) {
 	if (remainingHours) parts.push(`${remainingHours}h`);
 	if (remainingMins) parts.push(`${remainingMins}min`);
 	return parts.length ? parts.join(" ") : "0 min";
-}
+};
 
 // --- Render User Stats Modal ---
-function renderUserStatsModal(data) {
+renderUserStatsModal = (data) => {
 	console.log("[UserStats] Rendering modal for:", data);
 
 	// Defensive: handle no/invalid data
@@ -490,22 +534,22 @@ function renderUserStatsModal(data) {
 		{ label: "Watch", value: formatWatchTime(data.AllTimeWatchSeconds) },
 	];
 	let allTimeHTML = `
-      <div class="alltime-section">
-        <div class="alltime-title">All Time</div>
-        <div class="alltime-stats-cards">
-          ${allTimeStats
-					.map(
-						(stat) => `
-            <div class="alltime-card">
-              <div class="alltime-label">${stat.label}</div>
-              <div class="alltime-value">${stat.value}</div>
-            </div>
-          `
-					)
-					.join("")}
-        </div>
-      </div>
-    `;
+	  <div class="alltime-section">
+		<div class="alltime-title">All Time</div>
+		<div class="alltime-stats-cards">
+		  ${allTimeStats
+				.map(
+					(stat) => `
+			<div class="alltime-card">
+			  <div class="alltime-label">${stat.label}</div>
+			  <div class="alltime-value">${stat.value}</div>
+			</div>
+		  `
+				)
+				.join("")}
+		</div>
+	  </div>
+	`;
 	document.getElementById("userStatsAllTimeBlock").innerHTML = allTimeHTML;
 
 	// --- Month Dropdown ---
@@ -523,7 +567,7 @@ function renderUserStatsModal(data) {
 	dropdown.value = currentMonth;
 
 	dropdown.onchange = null;
-	dropdown.onchange = function () {
+	dropdown.onchange = () => {
 		userStatsCurrent.month = this.value;
 		console.log("[UserStats] Month changed:", this.value);
 		ws.send(JSON.stringify({ action: "getuser", user: userStatsCurrent.user, month: userStatsCurrent.month }));
@@ -551,9 +595,9 @@ function renderUserStatsModal(data) {
 		if (typeof value !== "undefined" && value !== null) {
 			hasRow = true;
 			tableHTML += `<tr>
-                <td>${label}</td>
-                <td class="text-end">${value || 0}</td>
-            </tr>`;
+				<td>${label}</td>
+				<td class="text-end">${value || 0}</td>
+			</tr>`;
 		}
 	});
 	if (!hasRow) {
@@ -567,7 +611,7 @@ function renderUserStatsModal(data) {
 		window.userStatsModalInstance = new bootstrap.Modal(modal, { keyboard: true });
 	}
 	window.userStatsModalInstance.show();
-}
+};
 
 // --- Save Settings Button ---
 $("#saveSettings").on("click", function () {

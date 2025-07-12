@@ -1,0 +1,28 @@
+# Node modules and dependencies
+node_modules/
+
+# Build and log files
+*.log
+*.tmp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Archives and backups
+Archive/*.zip
+Archive/*.lra
+
+# Environment files
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Misc
+*.swp

@@ -8,14 +8,14 @@ public class CPHInline
     public bool Execute()
     {
         // 1. Handle connection open/close events for session tracking
-        if (args.ContainsKey("event"))
+        if (args.ContainsKey("triggerName"))
         {
-            switch (args["event"].ToString())
+            switch (args["triggerName"].ToString())
             {
-                case "WebsocketCustomServerOpen":
+                case "Websocket Custom Server Open":
                     OnWebSocketOpen(args); // Your session tracking function
                     return true;
-                case "WebsocketCustomServerClose":
+                case "Websocket CustomServerClose":
                     OnWebSocketClose(args); // Your session tracking function
                     return true;
             }
