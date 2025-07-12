@@ -6,5 +6,6 @@ This folder contains the main dashboard web app for Viewer Of The Month.
 -  `dashboard.js`: Dashboard logic and WebSocket integration
 -  `dashhboard.css`: Custom styles
 -  `placeholder.png`: Default avatar image
+-  `README.md`: This file
 
 Open `dashboard.html` in your browser to use the dashboard.
