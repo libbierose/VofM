@@ -1,153 +1,153 @@
 name: Test Workflow Health
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - prod
+   workflow_dispatch:
+   push:
+      branches:
+         - prod
 
 jobs:
-  test-health:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+   test-health:
+      runs-on: ubuntu-latest
+      steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+         - name: Set up Node.js
+           uses: actions/setup-node@v4
+           with:
+              node-version: "20"
 
-      - name: Install JS/CSS tools
-        run: |
-          npm install -g eslint stylelint jest
+         - name: Install JS/CSS tools
+           run: |
+              npm install -g eslint stylelint jest
 
-      - name: Install tidy (HTML validator)
-        run: |
-          sudo apt-get update && sudo apt-get install -y tidy
+         - name: Install tidy (HTML validator)
+           run: |
+              sudo apt-get update && sudo apt-get install -y tidy
 
-      - name: Install Mono (C# compiler)
-        run: |
-          sudo apt-get update && sudo apt-get install -y mono-complete
+         - name: Install Mono (C# compiler)
+           run: |
+              sudo apt-get update && sudo apt-get install -y mono-complete
 
-      - name: List files in repository
-        run: ls -l
+         - name: List files in repository
+           run: ls -l
 
-      - name: Check required directories
-        run: |
-          for d in Dashboard OBS_Overlays Streamer.Bot_Actions; do
-            if [ ! -d "$d" ]; then
-              echo "❌ Directory $d is missing!"
-              exit 1
-            else
-              echo "✅ Directory $d found."
-            fi
-          done
+         - name: Check required directories
+           run: |
+              for d in Dashboard OBS_Overlays Streamer.Bot_Actions; do
+                if [ ! -d "$d" ]; then
+                  echo "❌ Directory $d is missing!"
+                  exit 1
+                else
+                  echo "✅ Directory $d found."
+                fi
+              done
 
-      - name: Check for main files
-        run: |
-          for f in "Dashboard/dashboard.html" "Streamer.Bot_Actions/Viewer Of The Month.lra"; do
-            if [ ! -f "$f" ]; then
-              echo "❌ File $f is missing!"
-              exit 1
-            else
-              echo "✅ File $f found."
-            fi
-          done
+         - name: Check for main files
+           run: |
+              for f in "Dashboard/dashboard.html" "Streamer.Bot_Actions/Viewer Of The Month.lra"; do
+                if [ ! -f "$f" ]; then
+                  echo "❌ File $f is missing!"
+                  exit 1
+                else
+                  echo "✅ File $f found."
+                fi
+              done
 
-      - name: Show latest commit
-        run: git log -1
+         - name: Show latest commit
+           run: git log -1
 
-      - name: Show tags
-        run: git tag
+         - name: Show tags
+           run: git tag
 
-      - name: Test shell command
-        run: echo "✅ Workflow runner is working!"
-      
-      - name: Check JavaScript syntax (Dashboard)
-        run: |
-          if command -v node >/dev/null 2>&1; then
-            node -c Dashboard/dashboard.js && echo "✅ dashboard.js syntax OK" || (echo "❌ dashboard.js syntax error" && exit 1)
-          else
-            echo "⚠️ Node.js not installed, skipping JS syntax check"
-          fi
+         - name: Test shell command
+           run: echo "✅ Workflow runner is working!"
 
-      - name: Lint dashboard.js (basic)
-        run: |
-          if command -v npx >/dev/null 2>&1; then
-            npx eslint Dashboard/dashboard.js || echo "⚠️ ESLint not configured or lint errors found"
-          else
-            echo "⚠️ npx not available, skipping lint"
-          fi
-
-      - name: Check HTML validity (Dashboard)
-        run: |
-          if command -v tidy >/dev/null 2>&1; then
-            tidy -e Dashboard/dashboard.html || echo "⚠️ HTML errors found in dashboard.html"
-          else
-            echo "⚠️ tidy not installed, skipping HTML check"
-          fi
-
-      - name: Check C# syntax (Streamer.Bot_Actions/Src)
-        run: |
-          if command -v mcs >/dev/null 2>&1; then
-            mcs -out:/dev/null -warn:0 Streamer.Bot_Actions/Src/stats.cs && echo "✅ stats.cs syntax OK" || (echo "❌ stats.cs syntax error" && exit 1)
-            mcs -out:/dev/null -warn:0 Streamer.Bot_Actions/Src/websocket.cs && echo "✅ websocket.cs syntax OK" || (echo "❌ websocket.cs syntax error" && exit 1)
-          else
-            echo "⚠️ Mono C# compiler (mcs) not installed, skipping C# syntax check"
-          fi
-
-      - name: Validate HTML links (Dashboard)
-        run: |
-          if command -v grep >/dev/null 2>&1; then
-            grep -o 'href="[^"]*"' Dashboard/dashboard.html | while read -r link; do
-              url=$(echo $link | sed 's/href="//;s/"//')
-              if [[ $url == http* ]]; then
-                curl --head --silent --fail "$url" || echo "⚠️ Broken link: $url"
-              fi
-            done
-            echo "✅ HTML link validation complete"
-          else
-            echo "⚠️ grep not available, skipping link check"
-          fi
-
-      - name: Lint CSS (Dashboard)
-        run: |
-          if command -v npx >/dev/null 2>&1; then
-            npx stylelint Dashboard/dashhboard.css || echo "⚠️ CSS lint errors or stylelint not configured"
-          else
-            echo "⚠️ npx not available, skipping CSS lint"
-          fi
-
-      - name: Discover JavaScript tests (Dashboard)
-        run: |
-          if [ -f "Dashboard/dashboard.test.js" ]; then
-            if command -v npx >/dev/null 2>&1; then
-              npx jest Dashboard/dashboard.test.js || echo "⚠️ JS tests failed or jest not configured"
-            else
-              echo "⚠️ npx not available, skipping JS tests"
-            fi
-          else
-            echo "ℹ️ No dashboard.test.js found, skipping JS unit tests"
-          fi
-
-      - name: Build C# files (Streamer.Bot_Actions/Src)
-        run: |
-          if command -v mcs >/dev/null 2>&1; then
-            mcs -out:build_test.exe Streamer.Bot_Actions/Src/*.cs && echo "✅ C# build succeeded" || (echo "❌ C# build failed" && exit 1)
-          else
-            echo "⚠️ Mono C# compiler (mcs) not installed, skipping C# build"
-          fi
-
-      - name: Check overlay image sizes
-        run: |
-          for img in OBS_Overlays/*.png; do
-            if [ -f "$img" ]; then
-              size=$(stat -c %s "$img")
-              if [ "$size" -gt 1048576 ]; then
-                echo "⚠️ $img is larger than 1MB ($size bytes)"
+         - name: Check JavaScript syntax (Dashboard)
+           run: |
+              if command -v node >/dev/null 2>&1; then
+                node -c Dashboard/dashboard.js && echo "✅ dashboard.js syntax OK" || (echo "❌ dashboard.js syntax error" && exit 1)
               else
-                echo "✅ $img size OK ($size bytes)"
+                echo "⚠️ Node.js not installed, skipping JS syntax check"
               fi
-            fi
-          done
+
+         - name: Lint dashboard.js (basic)
+           run: |
+              if command -v npx >/dev/null 2>&1; then
+                npx eslint Dashboard/dashboard.js || echo "⚠️ ESLint not configured or lint errors found"
+              else
+                echo "⚠️ npx not available, skipping lint"
+              fi
+
+         - name: Check HTML validity (Dashboard)
+           run: |
+              if command -v tidy >/dev/null 2>&1; then
+                tidy -e Dashboard/dashboard.html || echo "⚠️ HTML errors found in dashboard.html"
+              else
+                echo "⚠️ tidy not installed, skipping HTML check"
+              fi
+
+         - name: Check C# syntax (Streamer.Bot_Actions/Src)
+           run: |
+              if command -v mcs >/dev/null 2>&1; then
+                mcs -out:/dev/null -warn:0 Streamer.Bot_Actions/Src/stats.cs && echo "✅ stats.cs syntax OK" || (echo "❌ stats.cs syntax error" && exit 1)
+                mcs -out:/dev/null -warn:0 Streamer.Bot_Actions/Src/websocket.cs && echo "✅ websocket.cs syntax OK" || (echo "❌ websocket.cs syntax error" && exit 1)
+              else
+                echo "⚠️ Mono C# compiler (mcs) not installed, skipping C# syntax check"
+              fi
+
+         - name: Validate HTML links (Dashboard)
+           run: |
+              if command -v grep >/dev/null 2>&1; then
+                grep -o 'href="[^"]*"' Dashboard/dashboard.html | while read -r link; do
+                  url=$(echo $link | sed 's/href="//;s/"//')
+                  if [[ $url == http* ]]; then
+                    curl --head --silent --fail "$url" || echo "⚠️ Broken link: $url"
+                  fi
+                done
+                echo "✅ HTML link validation complete"
+              else
+                echo "⚠️ grep not available, skipping link check"
+              fi
+
+         - name: Lint CSS (Dashboard)
+           run: |
+              if command -v npx >/dev/null 2>&1; then
+                npx stylelint Dashboard/dashhboard.css || echo "⚠️ CSS lint errors or stylelint not configured"
+              else
+                echo "⚠️ npx not available, skipping CSS lint"
+              fi
+
+         - name: Discover JavaScript tests (Dashboard)
+           run: |
+              if [ -f "Dashboard/dashboard.test.js" ]; then
+                if command -v npx >/dev/null 2>&1; then
+                  npx jest Dashboard/dashboard.test.js || echo "⚠️ JS tests failed or jest not configured"
+                else
+                  echo "⚠️ npx not available, skipping JS tests"
+                fi
+              else
+                echo "ℹ️ No dashboard.test.js found, skipping JS unit tests"
+              fi
+
+         - name: Build C# files (Streamer.Bot_Actions/Src)
+           run: |
+              if command -v mcs >/dev/null 2>&1; then
+                mcs -out:build_test.exe Streamer.Bot_Actions/Src/*.cs && echo "✅ C# build succeeded" || (echo "❌ C# build failed" && exit 1)
+              else
+                echo "⚠️ Mono C# compiler (mcs) not installed, skipping C# build"
+              fi
+
+         - name: Check overlay image sizes
+           run: |
+              for img in OBS_Overlays/*.png; do
+                if [ -f "$img" ]; then
+                  size=$(stat -c %s "$img")
+                  if [ "$size" -gt 1048576 ]; then
+                    echo "⚠️ $img is larger than 1MB ($size bytes)"
+                  else
+                    echo "✅ $img size OK ($size bytes)"
+                  fi
+                fi
+              done
