@@ -1,0 +1,47 @@
+name: Package VofM Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up zip
+        run: sudo apt-get install -y zip
+
+      - name: Prepare package folders
+        run: |
+          mkdir -p VofM_Package/Dashboard
+          mkdir -p VofM_Package/OBS_Overlays
+          mkdir -p VofM_Package/Streamer.Bot_Actions
+
+      - name: Copy Dashboard files
+        run: cp -r Dashboard/* VofM_Package/Dashboard/
+
+      - name: Copy OBS Overlay files
+        run: cp -r OBS_Overlays/* VofM_Package/OBS_Overlays/
+
+      - name: Copy latest .lra file
+        run: cp Streamer.Bot_Actions/Viewer\ Of\ The\ Month.lra VofM_Package/Streamer.Bot_Actions/
+
+      - name: Zip the package
+        run: zip -r VofM_Release_${{ github.ref_name }}.zip VofM_Package
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VofM_Release
+          path: VofM_Release_${{ github.ref_name }}.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: VofM_Release_${{ github.ref_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
