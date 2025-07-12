@@ -100,11 +100,20 @@ jobs:
               name: VofM_Release
               path: VofM_Release_${{ env.new_tag }}.zip
 
+         - name: Read release notes
+           id: notes
+           run: |
+              body="$(cat VofM_Package/release.md)"
+              echo "body<<EOF" >> $GITHUB_ENV
+              echo "$body" >> $GITHUB_ENV
+              echo "EOF" >> $GITHUB_ENV
+
          - name: Create GitHub Release
            uses: softprops/action-gh-release@v2
            with:
               tag_name: ${{ env.new_tag }}
               name: VofM Release ${{ env.new_tag }}
+              body: ${{ env.body }}
               files: |
                  VofM_Release_${{ env.new_tag }}.zip
                  VofM_Package/release.md
