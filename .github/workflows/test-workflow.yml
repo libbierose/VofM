@@ -91,8 +91,8 @@ jobs:
       - name: Check C# syntax (Streamer.Bot_Actions/Src)
         run: |
           if command -v mcs >/dev/null 2>&1; then
-            mcs -parse Streamer.Bot_Actions/Src/stats.cs && echo "✅ stats.cs syntax OK" || (echo "❌ stats.cs syntax error" && exit 1)
-            mcs -parse Streamer.Bot_Actions/Src/websocket.cs && echo "✅ websocket.cs syntax OK" || (echo "❌ websocket.cs syntax error" && exit 1)
+            mcs -out:/dev/null -warn:0 Streamer.Bot_Actions/Src/stats.cs && echo "✅ stats.cs syntax OK" || (echo "❌ stats.cs syntax error" && exit 1)
+            mcs -out:/dev/null -warn:0 Streamer.Bot_Actions/Src/websocket.cs && echo "✅ websocket.cs syntax OK" || (echo "❌ websocket.cs syntax error" && exit 1)
           else
             echo "⚠️ Mono C# compiler (mcs) not installed, skipping C# syntax check"
           fi
