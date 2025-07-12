@@ -1,47 +1,84 @@
 name: Package VofM Release
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+   push:
+      tags:
+         - "v*.*.*"
 
 jobs:
-  build-and-package:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+   build-and-package:
+      runs-on: ubuntu-latest
+      steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
 
-      - name: Set up zip
-        run: sudo apt-get install -y zip
+         - name: Set up zip
+           run: sudo apt-get install -y zip
 
-      - name: Prepare package folders
-        run: |
-          mkdir -p VofM_Package/Dashboard
-          mkdir -p VofM_Package/OBS_Overlays
-          mkdir -p VofM_Package/Streamer.Bot_Actions
+         - name: Prepare package folders
+           run: |
+              mkdir -p VofM_Package/Dashboard
+              mkdir -p VofM_Package/OBS_Overlays
+              mkdir -p VofM_Package/Streamer.Bot_Actions
 
-      - name: Copy Dashboard files
-        run: cp -r Dashboard/* VofM_Package/Dashboard/
+         - name: Copy Dashboard files
+           run: cp -r Dashboard/* VofM_Package/Dashboard/
 
-      - name: Copy OBS Overlay files
-        run: cp -r OBS_Overlays/* VofM_Package/OBS_Overlays/
+         - name: Copy OBS Overlay files
+           run: cp -r OBS_Overlays/* VofM_Package/OBS_Overlays/
 
-      - name: Copy latest .lra file
-        run: cp Streamer.Bot_Actions/Viewer\ Of\ The\ Month.lra VofM_Package/Streamer.Bot_Actions/
+         - name: Copy latest .lra file
+           run: cp Streamer.Bot_Actions/Viewer\ Of\ The\ Month.lra VofM_Package/Streamer.Bot_Actions/
 
-      - name: Zip the package
-        run: zip -r VofM_Release_${{ github.ref_name }}.zip VofM_Package
+         - name: Generate dynamic release.md
+           run: |
+              echo "# VofM Release Package" > VofM_Package/release.md
+              echo "" >> VofM_Package/release.md
+              echo "This release contains the following components, packaged for easy setup:" >> VofM_Package/release.md
+              echo "" >> VofM_Package/release.md
+              echo "## Included in the Zip" >> VofM_Package/release.md
+              echo "" >> VofM_Package/release.md
+              echo "- **Dashboard/**" >> VofM_Package/release.md
+              ls VofM_Package/Dashboard | sed 's/^/  - /' >> VofM_Package/release.md
+              echo "- **OBS_Overlays/**" >> VofM_Package/release.md
+              ls VofM_Package/OBS_Overlays | sed 's/^/  - /' >> VofM_Package/release.md
+              echo "- **Streamer.Bot_Actions/**" >> VofM_Package/release.md
+              ls VofM_Package/Streamer.Bot_Actions | sed 's/^/  - /' >> VofM_Package/release.md
+              if [ -d VofM_Package/Streamer.Bot_Actions/Src ]; then
+                echo "  - Src/" >> VofM_Package/release.md
+                ls VofM_Package/Streamer.Bot_Actions/Src | sed 's/^/    - /' >> VofM_Package/release.md
+              fi
+              echo "" >> VofM_Package/release.md
+              echo "## How to Use" >> VofM_Package/release.md
+              echo "" >> VofM_Package/release.md
+              echo "1. Unzip the package." >> VofM_Package/release.md
+              echo "2. Open \`Dashboard/dashboard.html\` in your browser to view the dashboard." >> VofM_Package/release.md
+              echo "3. Import \`Streamer.Bot_Actions/Viewer Of The Month.lra\` into Streamer.Bot for instant setup." >> VofM_Package/release.md
+              echo "4. Add overlays from \`OBS_Overlays/\` to OBS as browser sources." >> VofM_Package/release.md
+              echo "" >> VofM_Package/release.md
+              echo "## Changes in This Release" >> VofM_Package/release.md
+              echo "" >> VofM_Package/release.md
+              echo "- Release version: ${{ github.ref_name }}" >> VofM_Package/release.md
+              echo "- See commit history for detailed changes." >> VofM_Package/release.md
+              echo "" >> VofM_Package/release.md
+              echo "---" >> VofM_Package/release.md
+              echo "" >> VofM_Package/release.md
+              echo "For full documentation, see the main \`README.md\` in the repository." >> VofM_Package/release.md
 
-      - name: Upload release artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: VofM_Release
-          path: VofM_Release_${{ github.ref_name }}.zip
+         - name: Zip the package
+           run: zip -r VofM_Release_${{ github.ref_name }}.zip VofM_Package
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: VofM_Release_${{ github.ref_name }}.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         - name: Upload release artifact
+           uses: actions/upload-artifact@v4
+           with:
+              name: VofM_Release
+              path: VofM_Release_${{ github.ref_name }}.zip
+
+         - name: Create GitHub Release
+           uses: softprops/action-gh-release@v2
+           with:
+              files: |
+                 VofM_Release_${{ github.ref_name }}.zip
+                 VofM_Package/release.md
+           env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
