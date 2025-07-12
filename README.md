@@ -29,9 +29,15 @@ A web dashboard for managing and displaying Twitch Viewer Of The Month leaderboa
 ## Getting Started
 
 1. Clone this repository.
-2. Open `Dashboard/dashboard.html` in your browser.
-3. Ensure your backend WebSocket server is running at `ws://127.0.0.1:9292/` (or update the URL in `dashboard.js`).
-4. Configure settings via the dashboard UI.
+2. Import the Streamer.Bot actions:
+   -  Open Streamer.Bot.
+   -  Click the **Import** button.
+   -  Browse to `Streamer.Bot_Actions/` and select `Viewer Of The Month.lra`.
+   -  Confirm the import to add all required actions and triggers.
+   -  (Optional) Copy code from `stats.cs` and `websocket.cs` into the corresponding C# actions for updates. Code may be buggy if not already release!
+3. Open `Dashboard/dashboard.html` in your browser.
+4. Ensure your backend WebSocket server is running at `ws://127.0.0.1:9292/` (or update the URL in `dashboard.js`).
+5. Configure settings via the dashboard UI.
 
 ## Folder Structure
 
