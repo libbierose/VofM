@@ -2,8 +2,8 @@ name: Package VofM Release
 
 on:
    push:
-      tags:
-         - "v*.*.*"
+      branches:
+         - prod
 
 jobs:
    build-and-package:
