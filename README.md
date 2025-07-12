@@ -1,5 +1,21 @@
 # Viewer Of The Month Dashboard
 
+## About
+
+Viewer Of The Month (VofM) is a Twitch dashboard and automation suite for tracking, displaying, and celebrating your most engaged viewers. It features a modern web dashboard, OBS overlays, and deep integration with Streamer.Bot for real-time stats and automation.
+
+-  **Dashboard**: A web-based interface for viewing the current leaderboard, podium, all-time winners, and detailed user stats. Includes settings for customizing how points are awarded and displayed.
+-  **stats.cs**: A C# script for Streamer.Bot that calculates and manages viewer stats, such as points, redemptions, chat activity, and watch time.
+-  **websocket.cs**: A C# script for Streamer.Bot that enables real-time communication between Streamer.Bot and the dashboard via WebSocket, allowing instant updates to the leaderboard and overlays.
+-  **.lra file**: A pre-packaged Streamer.Bot action import file to quickly set up all required actions and triggers.
+
+With VofM, you can:
+
+-  Reward your most loyal viewers with a live-updating leaderboard and podium
+-  Display stats and overlays in OBS
+-  Automate point tracking and winner selection with Streamer.Bot
+-  Customize point logic, streaks, and more
+
 A web dashboard for managing and displaying Twitch Viewer Of The Month leaderboards, podiums, and user stats. Built with JavaScript, jQuery, Bootstrap, and DataTables. Integrates with Streamer.Bot and a WebSocket backend.
 
 ## Features

@@ -1,3 +1,13 @@
+# About
+
+This folder is part of the Viewer Of The Month (VofM) project, which brings Twitch viewer engagement tracking and automation to your stream. It contains:
+
+-  **stats.cs**: Calculates and manages viewer stats (points, redemptions, chat, watch time) in Streamer.Bot.
+-  **websocket.cs**: Enables real-time WebSocket communication between Streamer.Bot and the dashboard, so leaderboard and stats update instantly.
+-  **Viewer Of The Month.lra**: Import file for Streamer.Bot to quickly set up all actions and triggers.
+
+The dashboard (in the `Dashboard/` folder) provides a web interface for viewing and managing all stats, podiums, and settings. Together, these tools let you automate, display, and celebrate your most loyal viewers in real time.
+
 # Streamer.Bot Actions
 
 This folder contains all files needed to integrate Viewer Of The Month with Streamer.Bot.
