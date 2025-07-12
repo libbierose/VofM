@@ -1,3 +1,5 @@
+[![Test Workflow Health](https://github.com/libbierose/VofM/actions/workflows/test-workflow.yml/badge.svg)](https://github.com/libbierose/VofM/actions/workflows/test-workflow.yml)
+
 # Viewer Of The Month Dashboard
 
 ## About
