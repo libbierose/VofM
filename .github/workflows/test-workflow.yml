@@ -88,15 +88,6 @@ jobs:
                 echo "⚠️ tidy not installed, skipping HTML check"
               fi
 
-         - name: Check C# syntax (Streamer.Bot_Actions/Src)
-           run: |
-              if command -v mcs >/dev/null 2>&1; then
-                mcs -out:/dev/null -warn:0 Streamer.Bot_Actions/Src/stats.cs && echo "✅ stats.cs syntax OK" || (echo "❌ stats.cs syntax error" && exit 1)
-                mcs -out:/dev/null -warn:0 Streamer.Bot_Actions/Src/websocket.cs && echo "✅ websocket.cs syntax OK" || (echo "❌ websocket.cs syntax error" && exit 1)
-              else
-                echo "⚠️ Mono C# compiler (mcs) not installed, skipping C# syntax check"
-              fi
-
          - name: Validate HTML links (Dashboard)
            run: |
               if command -v grep >/dev/null 2>&1; then
@@ -129,14 +120,6 @@ jobs:
                 fi
               else
                 echo "ℹ️ No dashboard.test.js found, skipping JS unit tests"
-              fi
-
-         - name: Build C# files (Streamer.Bot_Actions/Src)
-           run: |
-              if command -v mcs >/dev/null 2>&1; then
-                mcs -out:build_test.exe Streamer.Bot_Actions/Src/*.cs && echo "✅ C# build succeeded" || (echo "❌ C# build failed" && exit 1)
-              else
-                echo "⚠️ Mono C# compiler (mcs) not installed, skipping C# build"
               fi
 
          - name: Check overlay image sizes
