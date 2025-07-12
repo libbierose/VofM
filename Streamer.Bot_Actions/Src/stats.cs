@@ -1,3 +1,5 @@
+// Streamer.bot code for handling Twitch events and tracking user stats
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
