@@ -11,18 +11,24 @@ jobs:
       steps:
          - name: Checkout repository
            uses: actions/checkout@v4
+           with:
+              fetch-depth: 0
+              fetch-tags: true
 
          - name: Get latest tag
            id: get_tag
            run: |
-              latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v2.1.0")
-              echo "latest_tag=$latest_tag" >> $GITHUB_ENV
+              tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v2.1.0")
+              echo "latest_tag=$tag" >> $GITHUB_ENV
 
          - name: Check for new commits since last tag
            id: check_commits
            run: |
-              latest_tag=${{ env.latest_tag }}
-              commits=$(git rev-list ${latest_tag}..HEAD --count)
+              if git rev-parse "$latest_tag" >/dev/null 2>&1; then
+                commits=$(git rev-list ${latest_tag}..HEAD --count)
+              else
+                commits=$(git rev-list HEAD --count)
+              fi
               echo "commits_since_tag=$commits" >> $GITHUB_ENV
 
          - name: Bump patch version and create new tag
@@ -31,7 +37,7 @@ jobs:
            env:
               GH_PAT: ${{ secrets.GH_PAT }}
            run: |
-              old_tag=${{ env.latest_tag }}
+              old_tag=$latest_tag
               base=${old_tag#v}
               major=$(echo $base | cut -d. -f1)
               minor=$(echo $base | cut -d. -f2)
@@ -40,6 +46,13 @@ jobs:
               new_tag="v${major}.${minor}.${new_patch}"
               git config --global user.email "github-actions[bot]@users.noreply.github.com"
               git config --global user.name "github-actions[bot]"
+              # Remove tag locally and remotely if it exists
+              if git rev-parse "$new_tag" >/dev/null 2>&1; then
+                git tag -d "$new_tag"
+              fi
+              if git ls-remote --tags origin | grep -q "refs/tags/$new_tag"; then
+                git push origin ":refs/tags/$new_tag"
+              fi
               git tag $new_tag
               git config --global --unset credential.helper || true
               git remote set-url origin https://x-access-token:$GH_PAT@github.com/libbierose/VofM.git
@@ -92,7 +105,7 @@ jobs:
               echo "" >> VofM_Package/release.md
               echo "## Changes in This Release" >> VofM_Package/release.md
               echo "" >> VofM_Package/release.md
-              echo "- Release version: ${{ env.new_tag }}" >> VofM_Package/release.md
+              echo "- Release version: $new_tag" >> VofM_Package/release.md
               echo "- See commit history for detailed changes." >> VofM_Package/release.md
               echo "" >> VofM_Package/release.md
               echo "---" >> VofM_Package/release.md
